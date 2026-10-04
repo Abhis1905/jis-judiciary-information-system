@@ -1,0 +1,456 @@
+<%- include('../partials/header', { title: 'New Case Filing – JIS' }) %>
+
+<div class="container py-4">
+
+  <!-- Breadcrumb & Header -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/registrar/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="/registrar/cases">Cases</a></li>
+      <li class="breadcrumb-item active">New Case Filing (R1)</li>
+    </ol>
+  </nav>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-dark text-white py-3">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-folder-plus fs-4 me-2"></i>
+            <div>
+              <h5 class="mb-0 fw-bold">New Case Filing</h5>
+              <small class="text-secondary">DFD: REGISTRAR &rarr; JIS (New Case Filing)</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body p-4">
+          <form action="/registrar/cases" method="POST" id="newCaseForm">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+
+            <!-- Row 1: Case Number & Type -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label for="case_number" class="form-label fw-semibold">
+                  Case Number <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light"><i class="bi bi-hash"></i></span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="case_number"
+                    name="case_number"
+                    placeholder="e.g. JIS/CIV/2024/005"
+                    required
+                  >
+                </div>
+                <div class="form-text small">Must be unique across the judicial system.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="case_type" class="form-label fw-semibold">
+                  Case Type <span class="text-danger">*</span>
+                </label>
+                <select class="form-select" id="case_type" name="case_type" required>
+                  <option value="" disabled selected>-- Select Case Type --</option>
+                  <option value="Civil">Civil</option>
+                  <option value="Criminal">Criminal</option>
+                  <option value="Constitutional">Constitutional</option>
+                  <option value="Family">Family</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Row 2: Title -->
+            <div class="mb-3">
+              <label for="title" class="form-label fw-semibold">
+                Case Title <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="title"
+                name="title"
+                placeholder="e.g. State of Karnataka vs Ramesh Kumar"
+                required
+              >
+            </div>
+
+            <!-- Row 3: Parties (Petitioner & Respondent) -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label for="petitioner_name" class="form-label fw-semibold">
+                  Petitioner Name <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="petitioner_name"
+                    name="petitioner_name"
+                    placeholder="Full name of petitioner"
+                    required
+                  >
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="respondent_name" class="form-label fw-semibold">
+                  Respondent Name <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light"><i class="bi bi-person-badge"></i></span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="respondent_name"
+                    name="respondent_name"
+                    placeholder="Full name of respondent"
+                    required
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 4: Filing Date & Public Visibility -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label for="filing_date" class="form-label fw-semibold">
+                  Filing Date <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="date"
+                  class="form-control"
+                  id="filing_date"
+                  name="filing_date"
+                  value="<%= todayStr %>"
+                  required
+                >
+              </div>
+
+              <div class="col-md-6 d-flex align-items-center">
+                <div class="form-check form-switch mt-3">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="is_public"
+                    name="is_public"
+                    value="1"
+                    checked
+                  >
+                  <label class="form-check-label fw-semibold" for="is_public">
+                    Public Case (Visible to Citizens)
+                  </label>
+                  <div class="form-text small">
+                    When enabled, citizens can search and view case status on the public portal.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Judicial Jurisdiction & Court Hierarchy Section -->
+            <div class="card bg-light border mb-4">
+              <div class="card-header bg-white py-2 fw-semibold text-primary d-flex align-items-center">
+                <i class="bi bi-diagram-3-fill me-2"></i>Judicial Jurisdiction & Court Hierarchy
+              </div>
+              <div class="card-body">
+                <!-- State & High Court -->
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label for="state_ut_id" class="form-label fw-semibold">State / Union Territory</label>
+                    <select class="form-select" id="state_ut_id" name="state_ut_id">
+                      <option value="">-- Select State / UT --</option>
+                      <% if (typeof states !== 'undefined' && states) { %>
+                        <% states.forEach(function(s) { %>
+                          <option value="<%= s.id %>"><%= s.name %> (<%= s.type %>)</option>
+                        <% }); %>
+                      <% } %>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="high_court_id" class="form-label fw-semibold">High Court of Judicature</label>
+                    <select class="form-select" id="high_court_id" name="high_court_id">
+                      <option value="">-- Select State First or Select High Court --</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Bench & District -->
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label for="bench_id" class="form-label fw-semibold">High Court Bench / Seat</label>
+                    <select class="form-select" id="bench_id" name="bench_id">
+                      <option value="">-- Select High Court First --</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="district_id" class="form-label fw-semibold">Judicial District</label>
+                    <select class="form-select" id="district_id" name="district_id">
+                      <option value="">-- Select State / Bench First --</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Court Tier / Level & Subordinate Court -->
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="court_level_id" class="form-label fw-semibold">Court Tier / Level</label>
+                    <select class="form-select" id="court_level_id" name="court_level_id">
+                      <option value="">-- Select Court Tier --</option>
+                      <% if (typeof courtLevels !== 'undefined' && courtLevels) { %>
+                        <% courtLevels.forEach(function(cl) { %>
+                          <option value="<%= cl.id %>">Tier <%= cl.tier_order %>: <%= cl.level_name %></option>
+                        <% }); %>
+                      <% } %>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label for="subordinate_court_id" class="form-label fw-semibold">Subordinate Court Establishment</label>
+                    <select class="form-select" id="subordinate_court_id" name="subordinate_court_id">
+                      <option value="">-- Select District & Tier First --</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Live Appellate Route Preview -->
+                <div id="appellatePathwayBox" class="mt-3 p-3 bg-white border rounded" style="display: none;">
+                  <small class="fw-bold text-success text-uppercase d-block mb-2">
+                    <i class="bi bi-signpost-split me-1"></i>Statutory Appellate Pathway for Selected Tier & Category:
+                  </small>
+                  <div id="appellatePathwayList" class="small text-muted"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 5: Description -->
+            <div class="mb-4">
+              <label for="description" class="form-label fw-semibold">Case Description / Summary</label>
+              <textarea
+                class="form-control"
+                id="description"
+                name="description"
+                rows="4"
+                placeholder="Brief summary of the case facts, claims, or charges..."
+              ></textarea>
+            </div>
+
+            <!-- Information Callout -->
+            <div class="alert alert-light border mb-4">
+              <div class="d-flex">
+                <i class="bi bi-info-circle text-primary fs-5 me-2"></i>
+                <div class="small text-muted">
+                  <strong>Workflow Note:</strong> Newly filed cases start with status <code>Filed</code>. Judge assignment is performed manually by the Registrar on the Case Detail page (R3) after initial filing.
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex justify-content-between align-items-center">
+              <a href="/registrar/cases" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Cancel
+              </a>
+              <button type="submit" class="btn btn-dark px-4">
+                <i class="bi bi-check2-circle me-1"></i>File Case
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const stateSelect = document.getElementById('state_ut_id');
+  const hcSelect = document.getElementById('high_court_id');
+  const benchSelect = document.getElementById('bench_id');
+  const distSelect = document.getElementById('district_id');
+  const levelSelect = document.getElementById('court_level_id');
+  const subCourtSelect = document.getElementById('subordinate_court_id');
+  const caseTypeSelect = document.getElementById('case_type');
+  const pathwayBox = document.getElementById('appellatePathwayBox');
+  const pathwayList = document.getElementById('appellatePathwayList');
+
+  // 1. State change -> Load High Courts
+  stateSelect.addEventListener('change', async function() {
+    const stateId = this.value;
+    hcSelect.innerHTML = '<option value="">-- Loading High Courts... --</option>';
+    benchSelect.innerHTML = '<option value="">-- Select High Court First --</option>';
+    distSelect.innerHTML = '<option value="">-- Select State / Bench First --</option>';
+    subCourtSelect.innerHTML = '<option value="">-- Select District & Tier First --</option>';
+
+    if (!stateId) {
+      hcSelect.innerHTML = '<option value="">-- Select State First --</option>';
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/hierarchy/high-courts?state_ut_id=${stateId}`);
+      const data = await res.json();
+      if (data.success && data.data.length > 0) {
+        let options = '<option value="">-- Select High Court --</option>';
+        data.data.forEach(hc => {
+          options += `<option value="${hc.id}" ${data.data.length === 1 ? 'selected' : ''}>${hc.name} (${hc.principal_seat_city})</option>`;
+        });
+        hcSelect.innerHTML = options;
+        if (data.data.length === 1) {
+          hcSelect.dispatchEvent(new Event('change'));
+        }
+      } else {
+        hcSelect.innerHTML = '<option value="">No High Court found</option>';
+      }
+    } catch (err) {
+      console.error(err);
+      hcSelect.innerHTML = '<option value="">Error loading High Courts</option>';
+    }
+  });
+
+  // 2. High Court change -> Load Benches and Districts
+  hcSelect.addEventListener('change', async function() {
+    const hcId = this.value;
+    const stateId = stateSelect.value;
+    benchSelect.innerHTML = '<option value="">-- Loading Benches... --</option>';
+    distSelect.innerHTML = '<option value="">-- Loading Districts... --</option>';
+
+    if (!hcId) {
+      benchSelect.innerHTML = '<option value="">-- Select High Court First --</option>';
+      distSelect.innerHTML = '<option value="">-- Select High Court First --</option>';
+      return;
+    }
+
+    try {
+      // Load benches
+      const benchRes = await fetch(`/api/hierarchy/benches?high_court_id=${hcId}`);
+      const benchData = await benchRes.json();
+      if (benchData.success && benchData.data.length > 0) {
+        let options = '<option value="">-- Select Bench / Seat --</option>';
+        benchData.data.forEach(b => {
+          options += `<option value="${b.id}" ${b.bench_type === 'Principal Seat' ? 'selected' : ''}>${b.bench_name} (${b.bench_type})</option>`;
+        });
+        benchSelect.innerHTML = options;
+        benchSelect.dispatchEvent(new Event('change'));
+      } else {
+        benchSelect.innerHTML = '<option value="">No Benches found</option>';
+      }
+    } catch (err) {
+      console.error(err);
+      benchSelect.innerHTML = '<option value="">Error loading benches</option>';
+    }
+  });
+
+  // 3. Bench change -> Load Districts filtered by Bench and State
+  benchSelect.addEventListener('change', async function() {
+    const benchId = this.value;
+    const stateId = stateSelect.value;
+    const hcId = hcSelect.value;
+
+    if (!benchId && !hcId) {
+      distSelect.innerHTML = '<option value="">-- Select Bench / State First --</option>';
+      return;
+    }
+
+    try {
+      let url = `/api/hierarchy/districts?`;
+      if (stateId) url += `state_ut_id=${stateId}&`;
+      if (hcId) url += `high_court_id=${hcId}&`;
+      if (benchId) url += `bench_id=${benchId}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success && data.data.length > 0) {
+        let options = '<option value="">-- Select District --</option>';
+        data.data.forEach(d => {
+          options += `<option value="${d.id}">${d.district_name}${d.headquarters ? ' (' + d.headquarters + ')' : ''}</option>`;
+        });
+        distSelect.innerHTML = options;
+      } else {
+        distSelect.innerHTML = '<option value="">No Districts found</option>';
+      }
+    } catch (err) {
+      console.error(err);
+      distSelect.innerHTML = '<option value="">Error loading districts</option>';
+    }
+  });
+
+  // 4. District or Court Level change -> Load Subordinate Courts
+  async function loadSubordinateCourts() {
+    const distId = distSelect.value;
+    const levelId = levelSelect.value;
+
+    if (!distId) {
+      subCourtSelect.innerHTML = '<option value="">-- Select District First --</option>';
+      return;
+    }
+
+    try {
+      let url = `/api/hierarchy/subordinate-courts?district_id=${distId}`;
+      if (levelId) url += `&court_level_id=${levelId}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success && data.data.length > 0) {
+        let options = '<option value="">-- Select Subordinate Court --</option>';
+        data.data.forEach(c => {
+          options += `<option value="${c.id}">${c.court_name} [${c.court_type}]</option>`;
+        });
+        subCourtSelect.innerHTML = options;
+      } else {
+        subCourtSelect.innerHTML = '<option value="">General District Court Complex</option>';
+      }
+    } catch (err) {
+      console.error(err);
+      subCourtSelect.innerHTML = '<option value="">Error loading courts</option>';
+    }
+  }
+
+  distSelect.addEventListener('change', loadSubordinateCourts);
+  levelSelect.addEventListener('change', loadSubordinateCourts);
+
+  // 5. Update Live Appellate Pathway Preview
+  async function updateAppellatePathway() {
+    const category = caseTypeSelect.value || 'Civil';
+    const levelId = levelSelect.value;
+
+    if (!category) return;
+
+    try {
+      let url = `/api/hierarchy/appellate-path?category=${encodeURIComponent(category)}`;
+      if (levelId) url += `&court_level_id=${levelId}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.success && data.data.length > 0) {
+        let html = '<ol class="mb-0 ps-3">';
+        data.data.forEach(step => {
+          html += `<li class="mb-1"><strong>${step.from_level_name}</strong> &rarr; <strong class="text-primary">${step.to_level_name}</strong>: <em>${step.appeal_type}</em> (${step.governing_statute})</li>`;
+        });
+        html += '</ol>';
+        pathwayList.innerHTML = html;
+        pathwayBox.style.display = 'block';
+      } else {
+        pathwayBox.style.display = 'none';
+      }
+    } catch (err) {
+      console.error(err);
+      pathwayBox.style.display = 'none';
+    }
+  }
+
+  caseTypeSelect.addEventListener('change', updateAppellatePathway);
+  levelSelect.addEventListener('change', updateAppellatePathway);
+});
+</script>
+
+<%- include('../partials/footer') %>

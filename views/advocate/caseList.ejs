@@ -1,0 +1,208 @@
+<%- include('../partials/header', { title: 'My Cases & Case Linking – JIS' }) %>
+
+<div class="container py-4">
+
+  <!-- Breadcrumb & Header -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/advocate/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item active">My Cases (A1)</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="mb-0 fw-bold">
+        <i class="bi bi-briefcase me-2 text-primary"></i>Advocate Case Docket
+      </h4>
+      <p class="text-muted mb-0 small">
+        DFD: ADVOCATE &rarr; JIS (Vakalatnama & Case Details) | JIS &rarr; ADVOCATE (Case History)
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/advocate/causelist" class="btn btn-outline-dark btn-sm">
+        <i class="bi bi-list-ol me-1"></i>Cause List
+      </a>
+      <a href="#unlinkedCasesSection" class="btn btn-dark btn-sm">
+        <i class="bi bi-link-45deg me-1"></i>Link New Case
+      </a>
+    </div>
+  </div>
+
+  <!-- Section 1: My Linked Cases -->
+  <div class="card border-0 shadow-sm mb-5">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div>
+        <i class="bi bi-folder-check text-primary me-2"></i>My Represented Cases (Linked via Vakalatnama)
+      </div>
+      <span class="badge bg-primary"><%= linkedCases.length %> Linked Case(s)</span>
+    </div>
+
+    <div class="card-body p-0">
+      <% if (linkedCases.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Case Number</th>
+              <th>Title & Parties</th>
+              <th>Type</th>
+              <th>Presiding Judge</th>
+              <th>Status</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% linkedCases.forEach(c => { %>
+            <tr>
+              <td>
+                <a href="/advocate/cases/<%= c.id %>" class="text-decoration-none fw-bold font-monospace">
+                  <%= c.case_number %>
+                </a>
+              </td>
+              <td>
+                <div class="fw-medium text-dark"><%= c.title %></div>
+                <div class="text-muted small"><%= c.petitioner_name %> vs <%= c.respondent_name %></div>
+                <% if (c.high_court_name) { %>
+                  <div class="text-secondary" style="font-size: 0.75rem;">
+                    <i class="bi bi-geo-alt me-1"></i><%= c.district_name ? c.district_name + ', ' : '' %><%= c.high_court_name %>
+                  </div>
+                <% } %>
+              </td>
+              <td><span class="badge bg-secondary"><%= c.case_type %></span></td>
+              <td>
+                <% if (c.judge_name) { %>
+                  <span class="text-dark small"><i class="bi bi-person-badge text-primary me-1"></i><%= c.judge_name %></span>
+                <% } else { %>
+                  <span class="badge bg-warning text-dark">Pending Allocation</span>
+                <% } %>
+              </td>
+              <td>
+                <%
+                  let statusClass = 'bg-secondary';
+                  if (c.status === 'Filed') statusClass = 'bg-info text-dark';
+                  else if (c.status === 'Allocated') statusClass = 'bg-primary';
+                  else if (c.status === 'In Trial') statusClass = 'bg-warning text-dark';
+                  else if (c.status === 'Judgement Pending') statusClass = 'bg-danger';
+                  else if (c.status === 'Closed') statusClass = 'bg-dark';
+                %>
+                <span class="badge <%= statusClass %>"><%= c.status %></span>
+              </td>
+              <td class="text-end">
+                <a href="/advocate/cases/<%= c.id %>" class="btn btn-sm btn-dark">
+                  <i class="bi bi-folder2-open me-1"></i>Open Docket
+                </a>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } else { %>
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-folder-x fs-1 d-block mb-3"></i>
+        You are not currently linked to any active cases.
+        <div class="mt-2 small text-secondary">
+          Search for unlinked judicial cases below to upload a Vakalatnama and establish representation.
+        </div>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Section 2: Link a New Case (Search & File Vakalatnama) -->
+  <div class="card border-0 shadow-sm" id="unlinkedCasesSection">
+    <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-link-45deg fs-5 me-2"></i>
+        <div>
+          <h5 class="mb-0 fw-bold fs-6">Link a Case to Your Docket (File Vakalatnama)</h5>
+          <small class="text-secondary">Search unlinked cases in the judicial registry</small>
+        </div>
+      </div>
+      <span class="badge bg-light text-dark"><%= unlinkedCases.length %> Available</span>
+    </div>
+
+    <div class="card-body p-4">
+      <!-- Search Form -->
+      <form action="/advocate/cases" method="GET" class="mb-4">
+        <div class="row g-2 align-items-center">
+          <div class="col-md-9">
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+              <input
+                type="text"
+                class="form-control"
+                name="search"
+                placeholder="Search by case number, title, petitioner, or respondent..."
+                value="<%= searchQuery %>"
+              >
+            </div>
+          </div>
+          <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-dark flex-grow-1">Search Cases</button>
+            <% if (searchQuery) { %>
+              <a href="/advocate/cases" class="btn btn-outline-secondary" title="Clear search">Clear</a>
+            <% } %>
+          </div>
+        </div>
+      </form>
+
+      <!-- Search Results Table -->
+      <% if (unlinkedCases.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Case Number</th>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Petitioner</th>
+                <th>Respondent</th>
+                <th>Filing Date</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% unlinkedCases.forEach(c => { %>
+              <tr>
+                <td class="font-monospace fw-bold"><%= c.case_number %></td>
+                <td class="fw-medium">
+                  <%= c.title %>
+                  <% if (c.high_court_name) { %>
+                    <div class="text-secondary" style="font-size: 0.75rem;">
+                      <i class="bi bi-geo-alt me-1"></i><%= c.district_name ? c.district_name + ', ' : '' %><%= c.high_court_name %>
+                    </div>
+                  <% } %>
+                </td>
+                <td><span class="badge bg-secondary"><%= c.case_type %></span></td>
+                <td><%= c.petitioner_name %></td>
+                <td><%= c.respondent_name %></td>
+                <td class="text-muted small"><%= new Date(c.filing_date).toLocaleDateString('en-IN') %></td>
+                <td class="text-end">
+                  <a href="/advocate/cases/<%= c.id %>" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-file-earmark-arrow-up me-1"></i>File Vakalatnama
+                  </a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-search fs-2 d-block mb-2"></i>
+          No unlinked cases match your search criteria.
+        </div>
+      <% } %>
+
+      <div class="alert alert-light border mt-4 mb-0 small text-muted">
+        <i class="bi bi-info-circle text-primary me-1"></i>
+        <strong>Workflow Note:</strong> In accordance with Indian judicial procedure, uploading a Vakalatnama document formally links your advocate profile to the case record and unlocks E-Filings, Pleadings, and Scheduling Requests.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<%- include('../partials/footer') %>

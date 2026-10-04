@@ -1,0 +1,141 @@
+<header class="jis-topbar" role="banner">
+  <div class="d-flex align-items-center gap-1 gap-sm-2">
+    <% if (user) { %>
+      <button type="button"
+              class="btn btn-sm btn-outline-secondary d-lg-none"
+              id="jisSidebarToggleBtn"
+              aria-label="Open navigation menu"
+              aria-controls="jisSidebar"
+              aria-expanded="false">
+        <i class="bi bi-list fs-5"></i>
+      </button>
+    <% } %>
+
+    <a class="jis-brand" href="<%= user ? ('/' + user.role + '/dashboard') : '/' %>">
+      <span class="jis-brand-emblem" aria-hidden="true">
+        <i class="bi bi-bank2"></i>
+      </span>
+      <span class="text-nowrap d-none d-sm-inline">
+        <span class="jis-brand-title">JIS</span>
+        <span class="jis-brand-subtitle d-none d-lg-block">Judiciary Information System</span>
+      </span>
+    </a>
+
+    <% if (user) { %>
+      <span class="jis-badge jis-badge-navy text-capitalize ms-2 d-none d-xl-inline-flex text-nowrap">
+        <i class="bi bi-shield-check"></i>
+        <span><%= user.role %> Portal</span>
+      </span>
+    <% } %>
+
+    <!-- Visual Experiment Switcher (Variant A vs Variant B) -->
+    <div class="jis-variant-switcher ms-1 ms-md-2" role="group" aria-label="UI Visual Variant Switcher" title="Switch UI Variant (A: Cool Slate / B: Institutional Ivory)">
+      <button type="button" class="jis-variant-btn" data-set-variant="a"><span class="d-none d-sm-inline">Variant </span>A</button>
+      <button type="button" class="jis-variant-btn" data-set-variant="b"><span class="d-none d-sm-inline">Variant </span>B</button>
+    </div>
+  </div>
+
+  <% if (user) { %>
+    <!-- Authenticated Staff Topbar Controls -->
+    <div class="d-flex align-items-center gap-2 text-nowrap">
+      <a href="/" class="jis-public-link d-none d-lg-inline-flex" title="Public Citizen Search">
+        <i class="bi bi-globe2"></i>
+        <span>Public Portal</span>
+      </a>
+
+      <div class="dropdown">
+        <button class="jis-public-link border-0 bg-transparent dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false">
+          <i class="bi bi-journal-bookmark"></i>
+          <span class="d-none d-md-inline">Legal Research</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm border">
+          <li><a class="dropdown-item small py-2" href="/legal"><i class="bi bi-compass me-2 text-primary"></i>Legal Repository Hub</a></li>
+          <li><a class="dropdown-item small py-2" href="/legal/acts"><i class="bi bi-book me-2 text-primary"></i>Acts &amp; Statutory Codes</a></li>
+          <li><a class="dropdown-item small py-2" href="/legal/mapping"><i class="bi bi-arrow-left-right me-2 text-primary"></i>Old &harr; New Law Matrix</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item small py-2" href="/legal/judgments/supreme-court"><i class="bi bi-award me-2 text-primary"></i>Supreme Court Landmarks</a></li>
+          <li><a class="dropdown-item small py-2" href="/legal/judgments/high-courts"><i class="bi bi-building me-2 text-primary"></i>High Court Judgments</a></li>
+          <li><a class="dropdown-item small py-2" href="/legal/categories"><i class="bi bi-tags me-2 text-primary"></i>Legal Taxonomy</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item small py-2" href="/legal/search"><i class="bi bi-search me-2 text-primary"></i>Universal Legal Search</a></li>
+        </ul>
+      </div>
+
+      <a href="/notifications"
+         class="jis-public-link position-relative"
+         aria-label="Notifications<%= (typeof unreadCount !== 'undefined' && unreadCount > 0) ? ' (' + unreadCount + ' unread)' : '' %>">
+        <i class="bi bi-bell"></i>
+        <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+          <span class="badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.2em 0.45em;">
+            <%= unreadCount %>
+          </span>
+        <% } %>
+      </a>
+
+      <div class="dropdown">
+        <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2 dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false">
+          <i class="bi bi-person-circle"></i>
+          <span class="d-none d-md-inline"><%= user.full_name.split(' ')[0] %></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm border">
+          <li class="px-3 py-2">
+            <div class="fw-semibold small text-dark"><%= user.full_name %></div>
+            <div class="text-muted" style="font-size: 0.75rem;"><%= user.email %></div>
+            <div class="mt-1">
+              <span class="jis-badge jis-badge-navy text-capitalize"><%= user.role %></span>
+            </div>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <form action="/logout" method="POST">
+              <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+              <button type="submit" class="dropdown-item small text-danger py-2">
+                <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+              </button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  <% } else { %>
+    <!-- Public / Citizen Navigation (Separate from Staff Controls) -->
+    <nav aria-label="Public Citizen Navigation" class="d-flex align-items-center gap-1 gap-md-2">
+      <ul class="jis-public-nav">
+        <li>
+          <a class="jis-public-link" href="/" data-nav-path="/" data-nav-exact="true" title="Search Case">
+            <i class="bi bi-search"></i>
+            <span class="d-none d-sm-inline">Search Case</span>
+          </a>
+        </li>
+        <li class="d-none d-md-block">
+          <a class="jis-public-link" href="/?tab=records" data-nav-path="/search">
+            <i class="bi bi-file-earmark-check"></i>
+            <span>Case Status</span>
+          </a>
+        </li>
+        <li>
+          <a class="jis-public-link" href="/notices" data-nav-path="/notices" title="Court Notices">
+            <i class="bi bi-megaphone"></i>
+            <span class="d-none d-sm-inline">Court Notices</span>
+          </a>
+        </li>
+        <li>
+          <a class="jis-public-link" href="/legal" data-nav-path="/legal" title="Legal Information">
+            <i class="bi bi-journal-bookmark"></i>
+            <span class="d-none d-sm-inline">Legal Information</span>
+          </a>
+        </li>
+      </ul>
+      <a class="btn btn-primary btn-sm ms-1" href="/login">
+        <i class="bi bi-box-arrow-in-right me-1"></i><span class="d-none d-sm-inline">Staff </span>Login
+      </a>
+    </nav>
+  <% } %>
+</header>

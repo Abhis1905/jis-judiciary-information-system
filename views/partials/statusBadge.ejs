@@ -1,0 +1,12 @@
+<%
+  const st = typeof status !== 'undefined' && status ? status : 'Filed';
+  let badgeClass = 'jis-status-filed';
+  if (st === 'Allocated') badgeClass = 'jis-status-allocated';
+  else if (st === 'In Trial') badgeClass = 'jis-status-trial';
+  else if (st === 'Judgement Pending') badgeClass = 'jis-status-pending';
+  else if (st === 'Closed') badgeClass = 'jis-status-closed';
+%>
+<span class="jis-status-badge <%= badgeClass %>">
+  <span class="jis-status-dot" aria-hidden="true"></span>
+  <span><%= st %></span>
+</span>

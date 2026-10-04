@@ -1,0 +1,39 @@
+{
+  "name": "jis-judiciary-info-system",
+  "version": "1.0.0",
+  "description": "JIS – Judiciary Info System | Web Technology Academic Project",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "db:seed": "node database/seed.js",
+    "db:seed:hierarchy": "node database/seed_hierarchy.js",
+    "audit:hierarchy": "node database/audit_hierarchy.js",
+    "generate:cases": "node scripts/generate_cases.js",
+    "verify:cases": "node scripts/verify_generated_cases.js",
+    "report:cases": "node scripts/case_distribution_report.js",
+    "db:seed:legal": "node database/seed_legal_repository.js",
+    "verify:legal": "node scripts/verify_legal_repository.js",
+    "test:legal": "node test_legal_repository.js",
+    "test:case-legal": "node test_legal_case_integration.js",
+    "test:appeals": "node test_appellate_workflow.js",
+    "test:security": "node test_security_audit.js",
+    "db:backup": "node scripts/backup_database.js",
+    "verify:backup": "node scripts/verify_backup.js",
+    "test:setup": "node scripts/setup_test_db.js",
+    "test": "node scripts/setup_test_db.js && node test_full_suite.js && node test_hierarchy_integration.js && node test_legal_repository.js && node test_legal_case_integration.js && node test_appellate_workflow.js && node test_security_audit.js"
+  },
+
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "multer": "^1.4.5-lts.1",
+    "mysql2": "^3.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}

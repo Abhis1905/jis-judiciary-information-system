@@ -1,0 +1,290 @@
+<!-- Legal Intelligence & Applicable Provisions Partial -->
+<%
+  const framework = typeof legalFramework !== 'undefined' && legalFramework ? legalFramework : {
+    framework: 'General Indian Law',
+    period: 'Standard Jurisprudence',
+    isSyntheticClassification: true,
+    isTransition: false,
+    substantiveCode: 'BNS 2023 / IPC 1860',
+    proceduralCode: 'BNSS 2023 / CrPC 1973',
+    evidenceCode: 'BSA 2023 / IEA 1872',
+    label: 'Standard Framework'
+  };
+  const sections = typeof legalSections !== 'undefined' && legalSections ? legalSections : [];
+  const judgments = typeof legalJudgments !== 'undefined' && legalJudgments ? legalJudgments : [];
+  const allowEdit = typeof canEditLegalSections !== 'undefined' && canEditLegalSections;
+%>
+
+<div class="card mb-4">
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-book text-primary"></i>
+      <h2 class="jis-section-title">Legal Intelligence & Applicable Statutory Provisions</h2>
+    </div>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="jis-badge jis-badge-navy"><%= framework.period %></span>
+      <% if (framework.isSyntheticClassification) { %>
+        <span class="jis-badge" title="Synthetic test classification for simulated docket">
+          Synthetic Test Classification
+        </span>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <!-- Date-Aware Statutory Framework Banner -->
+    <div class="p-3 mb-4 rounded border" style="background-color: var(--jis-surface-muted);">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-1">
+        <div class="fw-semibold text-dark">
+          <i class="bi bi-scales me-1 text-primary"></i><%= framework.framework %>
+        </div>
+        <span class="jis-badge <%= framework.isTransition ? 'jis-badge-success' : 'jis-badge-warning' %>">
+          Filing Date: <%= new Date(caseRecord.filing_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+        </span>
+      </div>
+      <div class="jis-meta">
+        <strong>Substantive:</strong> <%= framework.substantiveCode %> &bull;
+        <strong>Procedural:</strong> <%= framework.proceduralCode %> &bull;
+        <strong>Evidence:</strong> <%= framework.evidenceCode %>
+      </div>
+    </div>
+
+    <!-- Applicable Legal Sections -->
+    <div class="mb-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+          <h3 class="jis-section-title">Applicable Legal Sections (<%= sections.length %>)</h3>
+          <div class="jis-meta">Statutory provisions linked to this case with IPC/CrPC/IEA &harr; BNS/BNSS/BSA cross-references</div>
+        </div>
+        <% if (allowEdit) { %>
+          <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#addSectionCollapse" aria-expanded="false" aria-controls="addSectionCollapse">
+            <i class="bi bi-plus-lg me-1"></i>Associate Legal Provision
+          </button>
+        <% } %>
+      </div>
+
+      <% if (allowEdit) { %>
+        <div class="collapse mb-3" id="addSectionCollapse">
+          <div class="p-3 rounded border bg-light">
+            <div class="fw-semibold small text-dark mb-2">Associate Statutory Provision to Case</div>
+            <form action="/registrar/cases/<%= caseRecord.id %>/legal-sections" method="POST">
+              <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+              <div class="row g-3">
+                <div class="col-12 col-md-3">
+                  <label for="legal_act_select" class="form-label">Act / Code <span class="text-danger">*</span></label>
+                  <select class="form-select form-select-sm" id="legal_act_select" required>
+                    <option value="" disabled selected>Select Act</option>
+                    <% if (typeof availableActs !== 'undefined' && availableActs) { %>
+                      <% availableActs.forEach(act => { %>
+                        <option value="<%= act.id %>"><%= act.short_title %> (<%= act.act_code %>)</option>
+                      <% }) %>
+                    <% } %>
+                  </select>
+                </div>
+                <div class="col-12 col-md-4">
+                  <label for="legal_section_id" class="form-label">Section <span class="text-danger">*</span></label>
+                  <select class="form-select form-select-sm" id="legal_section_id" name="legal_section_id" required>
+                    <option value="" disabled selected>Select Act First</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-2">
+                  <label for="relevance_type" class="form-label">Relevance <span class="text-danger">*</span></label>
+                  <select class="form-select form-select-sm" id="relevance_type" name="relevance_type" required>
+                    <option value="PRIMARY" selected>Primary</option>
+                    <option value="SECONDARY">Secondary</option>
+                    <option value="PROCEDURAL">Procedural</option>
+                    <option value="EVIDENTIARY">Evidentiary</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label for="notes" class="form-label">Notes (Optional)</label>
+                  <input type="text" class="form-control form-control-sm" id="notes" name="notes" placeholder="e.g. Primary charge under FIR">
+                </div>
+                <div class="col-12 text-end">
+                  <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="bi bi-check2 me-1"></i>Link Provision
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      <% } %>
+
+      <% if (sections.length === 0) { %>
+        <div class="jis-empty-state py-4 border rounded bg-light">
+          <i class="bi bi-journal-x jis-empty-icon" aria-hidden="true"></i>
+          <div class="jis-empty-title">No statutory provisions linked yet</div>
+          <p class="jis-empty-text mb-0">Associate relevant sections from IPC, BNS, CrPC, BNSS, or other statutes to enable automatic cross-referencing.</p>
+        </div>
+      <% } else { %>
+        <div class="table-responsive border rounded">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Act / Code</th>
+                <th>Section &amp; Title</th>
+                <th>Relevance</th>
+                <th>Old &harr; New Equivalent</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% sections.forEach(sec => { %>
+                <tr>
+                  <td style="max-width: 170px;">
+                    <span class="jis-badge jis-badge-navy" title="<%= sec.act_short_title %>"><%= sec.act_code || sec.act_short_title %></span>
+                    <% if (sec.act_short_title && sec.act_code) { %>
+                      <div class="jis-meta text-truncate mt-1" style="max-width: 155px;" title="<%= sec.act_short_title %>"><%= sec.act_short_title %></div>
+                    <% } %>
+                  </td>
+                  <td style="max-width: 230px;">
+                    <div class="fw-semibold text-dark">Section <%= sec.section_number %></div>
+                    <div class="jis-meta text-truncate" style="max-width: 220px;" title="<%= sec.section_title %>"><%= sec.section_title %></div>
+                  </td>
+                  <td>
+                    <span class="jis-badge"><%= sec.relevance_type %></span>
+                  </td>
+                  <td>
+                    <% if (sec.equivalents && sec.equivalents.length > 0) { %>
+                      <div class="d-flex flex-wrap gap-1">
+                        <% sec.equivalents.forEach(eq => { %>
+                          <a href="/legal/sections/<%= eq.target_sec_id %>" class="jis-badge text-decoration-none" title="<%= eq.relation_type %>: <%= eq.target_sec_title %>">
+                            <i class="bi bi-arrow-left-right text-primary"></i>
+                            <span><%= eq.target_act_code %> Sec <%= eq.target_sec_number %></span>
+                          </a>
+                        <% }) %>
+                      </div>
+                    <% } else { %>
+                      <span class="jis-meta">—</span>
+                    <% } %>
+                  </td>
+                  <td>
+                    <span class="jis-badge <%= sec.section_status === 'Active' ? 'jis-badge-success' : '' %>">
+                      <%= sec.section_status %>
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <div class="d-inline-flex align-items-center gap-1">
+                      <a href="/legal/sections/<%= sec.section_id %>" class="btn btn-sm btn-outline-primary">
+                        View Section
+                      </a>
+                      <% if (allowEdit) { %>
+                        <form action="/registrar/cases/<%= caseRecord.id %>/legal-sections/<%= sec.section_id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Remove this legal section association?');">
+                          <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+                          <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove association" aria-label="Remove section <%= sec.section_number %>">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </form>
+                      <% } %>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Referenced Judicial Judgments -->
+    <div class="pt-3 border-top">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+          <h3 class="jis-section-title">Referenced Precedents &amp; Judgments (<%= judgments.length %>)</h3>
+          <div class="jis-meta">Supreme Court, High Court, and Subordinate Court decisions linked to this case</div>
+        </div>
+        <a href="/legal" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-search me-1"></i>Browse Legal Repository
+        </a>
+      </div>
+
+      <% if (judgments.length === 0) { %>
+        <div class="jis-empty-state py-4 border rounded bg-light">
+          <i class="bi bi-journal-bookmark jis-empty-icon" aria-hidden="true"></i>
+          <div class="jis-empty-title">No precedent judgments linked</div>
+          <p class="jis-empty-text mb-0">Judicial precedents associated with this case will be listed here.</p>
+        </div>
+      <% } else { %>
+        <div class="row g-3">
+          <% judgments.forEach(j => { %>
+            <div class="col-12 col-md-6">
+              <div class="p-3 rounded border bg-white h-100 d-flex flex-column justify-content-between">
+                <div>
+                  <div class="d-flex justify-content-between align-items-start flex-wrap gap-1 mb-2">
+                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                      <span class="jis-badge jis-badge-navy"><%= j.court_tier %></span>
+                      <% if (j.record_provenance === 'SYNTHETIC_REPRESENTATIVE' || j.judgment_is_synthetic) { %>
+                        <span class="jis-badge" title="Synthetic / Representative Judgment Record">SYNTHETIC / REPRESENTATIVE</span>
+                      <% } else { %>
+                        <span class="jis-badge jis-badge-success" title="Real Verified Indian Judgment">REAL / VERIFIED</span>
+                      <% } %>
+                    </div>
+                    <span class="jis-badge"><%= j.relevance_type %></span>
+                  </div>
+
+                  <div class="fw-semibold mb-1">
+                    <a href="/legal/judgments/<%= j.judgment_id %>" class="text-decoration-none text-dark">
+                      <%= j.case_name %>
+                    </a>
+                  </div>
+                  <div class="jis-meta mb-2">
+                    <span class="font-monospace"><%= j.citation %></span> &bull; <%= new Date(j.judgment_date).getFullYear() %>
+                  </div>
+                  <% if (j.key_holding) { %>
+                    <p class="small text-secondary mb-2 jis-line-clamp-3">
+                      <%= j.key_holding %>
+                    </p>
+                  <% } %>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-2">
+                  <span class="jis-meta"><%= j.domain || 'Jurisprudence' %></span>
+                  <a href="/legal/judgments/<%= j.judgment_id %>" class="btn btn-sm btn-outline-primary py-0 px-2">
+                    Read Summary &rarr;
+                  </a>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<% if (allowEdit) { %>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const actSelect = document.getElementById('legal_act_select');
+    const secSelect = document.getElementById('legal_section_id');
+
+    if (actSelect && secSelect) {
+      actSelect.addEventListener('change', async function() {
+        const actId = this.value;
+        secSelect.innerHTML = '<option value="" disabled selected>Loading sections...</option>';
+        try {
+          const res = await fetch(`/api/legal/acts/${actId}/sections`);
+          if (!res.ok) throw new Error('Failed to load sections');
+          const data = await res.json();
+          if (data.sections && data.sections.length > 0) {
+            secSelect.innerHTML = '<option value="" disabled selected>Select Section</option>';
+            data.sections.forEach(s => {
+              const opt = document.createElement('option');
+              opt.value = s.id;
+              opt.textContent = `Sec ${s.section_number}: ${s.section_title}`;
+              secSelect.appendChild(opt);
+            });
+          } else {
+            secSelect.innerHTML = '<option value="" disabled selected>No sections found for this Act</option>';
+          }
+        } catch (err) {
+          console.error(err);
+          secSelect.innerHTML = '<option value="" disabled selected>Error loading sections</option>';
+        }
+      });
+    }
+  });
+</script>
+<% } %>

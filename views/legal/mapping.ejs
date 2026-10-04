@@ -1,0 +1,167 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+
+  <!-- Header -->
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-2">
+      <li class="breadcrumb-item"><a href="/legal" class="text-decoration-none">Legal Repository</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Old ↔ New Law Cross-Reference Matrix</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <h2 class="fw-bold mb-0">
+        <i class="bi bi-arrow-left-right text-danger me-2"></i>Old ↔ New Criminal Law Cross-Reference Matrix
+      </h2>
+      <p class="text-muted small mb-0">
+        Official statutory transition mapping between 1860/1973/1872 codes and the reformed 2023 Sanhitas (enforced 1 July 2024).
+      </p>
+    </div>
+    <span class="badge bg-danger fs-6 px-3 py-2"><%= mappings.length %> Transition Pairs Mapped</span>
+  </div>
+
+  <!-- Act Pair Tabs -->
+  <ul class="nav nav-pills mb-4 gap-2">
+    <li class="nav-item">
+      <a class="nav-link <%= currentPair === 'IPC_BNS' ? 'active bg-primary' : 'bg-light text-dark' %> fw-semibold" 
+         href="/legal/mapping?act_pair=IPC_BNS">
+        <i class="bi bi-shield-shaded me-1"></i>IPC 1860 ↔ BNS 2023
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link <%= currentPair === 'CRPC_BNSS' ? 'active bg-primary' : 'bg-light text-dark' %> fw-semibold" 
+         href="/legal/mapping?act_pair=CRPC_BNSS">
+        <i class="bi bi-gear-wide-connected me-1"></i>CrPC 1973 ↔ BNSS 2023
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link <%= currentPair === 'IEA_BSA' ? 'active bg-primary' : 'bg-light text-dark' %> fw-semibold" 
+         href="/legal/mapping?act_pair=IEA_BSA">
+        <i class="bi bi-fingerprint me-1"></i>IEA 1872 ↔ BSA 2023
+      </a>
+    </li>
+  </ul>
+
+  <!-- Filter & Search Bar -->
+  <div class="card border-0 shadow-sm p-3 mb-4 bg-light">
+    <form action="/legal/mapping" method="GET" class="row g-2 align-items-center">
+      <input type="hidden" name="act_pair" value="<%= currentPair %>">
+
+      <div class="col-md-6">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+          <input type="text" name="search" value="<%= search %>" class="form-control border-start-0" 
+                 placeholder="Search section numbers (e.g. '302', '103', '420', 'FIR', 'Arrest')...">
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <select name="relation_type" class="form-select">
+          <option value="">All Relation Types</option>
+          <option value="REPLACED_BY" <%= currentRelType === 'REPLACED_BY' ? 'selected' : '' %>>REPLACED_BY</option>
+          <option value="CORRESPONDS_TO" <%= currentRelType === 'CORRESPONDS_TO' ? 'selected' : '' %>>CORRESPONDS_TO</option>
+          <option value="MODIFIED_BY" <%= currentRelType === 'MODIFIED_BY' ? 'selected' : '' %>>MODIFIED_BY</option>
+          <option value="REPEALED" <%= currentRelType === 'REPEALED' ? 'selected' : '' %>>REPEALED</option>
+          <option value="RELATED_TO" <%= currentRelType === 'RELATED_TO' ? 'selected' : '' %>>RELATED_TO</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100 fw-semibold">Filter Matrix</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Comparison Matrix Table -->
+  <div class="card border-0 shadow-sm p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-dark">
+          <tr>
+            <th style="width: 25%;">Historical Law (<%= currentPair.split('_')[0] %>)</th>
+            <th style="width: 15%;" class="text-center">Relation Nature</th>
+            <th style="width: 25%;">Reformed Law (<%= currentPair.split('_')[1] %>)</th>
+            <th style="width: 35%;">Substantive Transition Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (mappings.length === 0) { %>
+            <tr>
+              <td colspan="4" class="text-center text-muted py-5">
+                <i class="bi bi-search fs-2 d-block mb-2 text-secondary"></i>
+                No transition pairs found matching your search.
+              </td>
+            </tr>
+          <% } else { %>
+            <% mappings.forEach(function(m) { %>
+              <tr>
+                <!-- Historical Section -->
+                <td>
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-secondary">Sec <%= m.from_sec %></span>
+                    <span class="badge bg-light text-dark border small"><%= m.from_act_title %></span>
+                  </div>
+                  <div class="fw-bold">
+                    <a href="/legal/sections/<%= m.from_id %>" class="text-decoration-none text-dark hover-primary">
+                      <%= m.from_title %>
+                    </a>
+                  </div>
+                  <div class="small text-muted">Valid until 30 June 2024</div>
+                </td>
+
+                <!-- Relation Badge -->
+                <td class="text-center">
+                  <% if (m.relation_type === 'CORRESPONDS_TO') { %>
+                    <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
+                      <i class="bi bi-arrows-collapse me-1"></i><%= m.relation_type %>
+                    </span>
+                  <% } else if (m.relation_type === 'MODIFIED_BY') { %>
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1">
+                      <i class="bi bi-pencil-square me-1"></i><%= m.relation_type %>
+                    </span>
+                  <% } else if (m.relation_type === 'REPLACED_BY') { %>
+                    <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1">
+                      <i class="bi bi-arrow-right-circle me-1"></i><%= m.relation_type %>
+                    </span>
+                  <% } else { %>
+                    <span class="badge bg-secondary px-2 py-1"><%= m.relation_type %></span>
+                  <% } %>
+                </td>
+
+                <!-- New Reformed Section -->
+                <td>
+                  <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-primary">Sec <%= m.to_sec %></span>
+                    <span class="badge bg-success-subtle text-success border small"><%= m.to_act_title %></span>
+                  </div>
+                  <div class="fw-bold">
+                    <a href="/legal/sections/<%= m.to_id %>" class="text-decoration-none text-primary hover-primary">
+                      <%= m.to_title %>
+                    </a>
+                  </div>
+                  <div class="small text-muted">Enforced from 1 July 2024</div>
+                </td>
+
+                <!-- Notes & Changes -->
+                <td>
+                  <div class="p-2 bg-light rounded small text-secondary">
+                    <%= m.notes %>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="text-muted small mt-3 text-end">
+    <i class="bi bi-shield-check me-1"></i>Source: Bureau of Police Research & Development (BPR&D), Ministry of Home Affairs, Government of India
+  </div>
+
+</div>
+
+<%- include('../partials/footer') %>

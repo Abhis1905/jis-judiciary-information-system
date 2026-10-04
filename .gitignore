@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Environment and sensitive credential files
+.env
+.env.*
+!.env.example
+
+# Uploaded internal case documents (internal/private case files ignored, directory structure preserved via .gitkeep)
+uploads/edocuments/*
+uploads/efilings/*
+uploads/pleadings/*
+uploads/vakalatnama/*
+uploads/judgements/*
+!uploads/**/.gitkeep
+
+# Database backups and scratch audit scripts containing local credentials
+backups/
+*.sql.gz
+*.sql.tar*
+db_desc.txt
+db_queries.txt
+db_queries_fix.txt
+db_tables.txt
+run_audit.sh
+run_audit_fix.sh
+run_audit_fix2.sh
+
+# Logs and OS metadata
+logs/
+*.log
+.DS_Store
+Thumbs.db

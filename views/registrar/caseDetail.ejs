@@ -1,0 +1,368 @@
+<%- include('../partials/header', { title: `Case ${caseRecord.case_number} – JIS` }) %>
+
+<%
+  const lifecycleStages = ['Filed', 'Allocated', 'In Trial', 'Judgement Pending', 'Closed'];
+  const currentStageIdx = lifecycleStages.indexOf(caseRecord.status);
+%>
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/registrar/dashboard">Registrar Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="/registrar/cases">All Cases</a></li>
+    <li class="breadcrumb-item active font-monospace" aria-current="page"><%= caseRecord.case_number %></li>
+  </ol>
+</nav>
+
+<!-- 1. Case Identity, Parties & Current Status Card -->
+<div class="card mb-4">
+  <!-- Top Case Identity Bar -->
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-start gap-3">
+    <div>
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        <span class="font-monospace fw-bold px-2 py-1 rounded" style="background-color: var(--jis-primary-subtle); color: var(--jis-primary); font-size: 0.85rem;">
+          <%= caseRecord.case_number %>
+        </span>
+        <span class="jis-badge"><%= caseRecord.case_type %> Case</span>
+        <%- include('../partials/statusBadge', { status: caseRecord.status }) %>
+        <% if (caseRecord.is_public) { %>
+          <span class="jis-badge jis-badge-success"><i class="bi bi-globe2"></i> Public Record</span>
+        <% } else { %>
+          <span class="jis-badge"><i class="bi bi-lock"></i> Private Record</span>
+        <% } %>
+      </div>
+      <h1 class="jis-page-title mb-0"><%= caseRecord.title %></h1>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <a href="/registrar/hearings?case_id=<%= caseRecord.id %>" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-calendar-plus me-1"></i>Schedule Hearing
+      </a>
+      <% if (typeof canFileAppeal !== 'undefined' && canFileAppeal && (!appealHistory || appealHistory.canAppealFurther)) { %>
+        <a href="/registrar/cases/<%= caseRecord.id %>/appeals/new" class="btn btn-sm btn-primary">
+          <i class="bi bi-arrow-up-right-circle me-1"></i>File Appeal
+        </a>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Linear Case Lifecycle Stepper -->
+  <div class="jis-lifecycle-bar" aria-label="Case Lifecycle Progression">
+    <span class="jis-label mb-0 me-2">Stage:</span>
+    <% lifecycleStages.forEach((stage, idx) => { %>
+      <%
+        let stepState = '';
+        if (idx < currentStageIdx) stepState = 'completed';
+        else if (idx === currentStageIdx) stepState = 'current';
+      %>
+      <span class="jis-lifecycle-step <%= stepState %>">
+        <% if (idx < currentStageIdx) { %>
+          <i class="bi bi-check-circle-fill"></i>
+        <% } else if (idx === currentStageIdx) { %>
+          <i class="bi bi-record-circle-fill"></i>
+        <% } else { %>
+          <i class="bi bi-circle"></i>
+        <% } %>
+        <span><%= stage %></span>
+      </span>
+      <% if (idx < lifecycleStages.length - 1) { %>
+        <i class="bi bi-chevron-right jis-lifecycle-sep" aria-hidden="true"></i>
+      <% } %>
+    <% }) %>
+  </div>
+
+  <!-- Parties & Filing Metadata -->
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-12 col-sm-6 col-lg-3">
+        <span class="jis-label">Petitioner / Complainant</span>
+        <div class="fw-semibold text-dark"><%= caseRecord.petitioner_name %></div>
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <span class="jis-label">Respondent / Accused</span>
+        <div class="fw-semibold text-dark"><%= caseRecord.respondent_name %></div>
+      </div>
+      <div class="col-6 col-sm-6 col-lg-3">
+        <span class="jis-label">Filing Date</span>
+        <div class="fw-semibold text-dark">
+          <%= new Date(caseRecord.filing_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+        </div>
+      </div>
+      <div class="col-6 col-sm-6 col-lg-3">
+        <span class="jis-label">Registered By</span>
+        <div class="fw-semibold text-dark"><%= caseRecord.filed_by_name || 'Court Registrar' %></div>
+      </div>
+
+      <% if (caseRecord.description) { %>
+        <div class="col-12 pt-3 border-top">
+          <span class="jis-label">Case Summary &amp; Claims</span>
+          <p class="mb-0 text-secondary"><%= caseRecord.description %></p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Court / Jurisdiction & Hierarchy -->
+<%- include('../partials/jurisdictionInfo') %>
+
+<!-- 3. Case Allocation (Judge Assignment) & Legal Representation -->
+<div class="row g-4 mb-4">
+  <!-- Presiding Judge Assignment -->
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-person-check text-primary"></i>
+          <h2 class="jis-section-title">Judge Assignment (Case Allocation)</h2>
+        </div>
+        <% if (caseRecord.judge_name) { %>
+          <span class="jis-badge jis-badge-success"><i class="bi bi-check2"></i> Allocated</span>
+        <% } else { %>
+          <span class="jis-badge jis-badge-warning"><i class="bi bi-exclamation-circle"></i> Action Needed</span>
+        <% } %>
+      </div>
+
+      <div class="card-body">
+        <div class="mb-3">
+          <span class="jis-label">Current Presiding Judge</span>
+          <% if (caseRecord.judge_name) { %>
+            <div class="p-3 rounded border bg-light d-flex align-items-center justify-content-between">
+              <div>
+                <div class="fw-semibold text-dark"><i class="bi bi-person-badge me-2 text-primary"></i><%= caseRecord.judge_name %></div>
+                <div class="jis-meta">Case Status: <%= caseRecord.status %></div>
+              </div>
+              <span class="jis-badge jis-badge-navy">Presiding</span>
+            </div>
+          <% } else { %>
+            <div class="p-3 rounded border" style="background-color: var(--jis-warning-bg); border-color: var(--jis-warning-border) !important; color: var(--jis-warning);">
+              <i class="bi bi-exclamation-triangle-fill me-1"></i>
+              <strong>No Judge Assigned.</strong> Select a presiding Judge below to allocate this case.
+            </div>
+          <% } %>
+        </div>
+
+        <form action="/registrar/cases/<%= caseRecord.id %>/assign-judge" method="POST">
+          <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+          <label for="judge_id" class="form-label">
+            <%= caseRecord.judge_id ? 'Reassign Presiding Judge' : 'Assign Presiding Judge' %> <span class="text-danger">*</span>
+          </label>
+          <div class="d-flex gap-2">
+            <select class="form-select" id="judge_id" name="judge_id" required>
+              <option value="" disabled <%= !caseRecord.judge_id ? 'selected' : '' %>>Select Judge...</option>
+              <% judges.forEach(j => { %>
+                <option value="<%= j.id %>" <%= caseRecord.judge_id === j.id ? 'selected' : '' %>>
+                  <%= j.full_name %> (<%= j.email %>)
+                </option>
+              <% }) %>
+            </select>
+            <button type="submit" class="btn btn-primary flex-shrink-0">
+              <i class="bi bi-check2 me-1"></i><%= caseRecord.judge_id ? 'Reassign' : 'Assign Judge' %>
+            </button>
+          </div>
+          <div class="form-text mt-2">
+            Assigning a Judge transitions a newly filed case to <code>Allocated</code> and notifies the assigned Judge.
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legal Representation Overview -->
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center gap-2">
+        <i class="bi bi-people text-primary"></i>
+        <h2 class="jis-section-title">Counsel &amp; Prosecution on Record</h2>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <span class="jis-label">Public Prosecutor</span>
+          <% if (caseRecord.prosecutor_name) { %>
+            <div class="p-3 rounded border bg-light">
+              <div class="fw-semibold text-dark"><i class="bi bi-briefcase me-2 text-primary"></i><%= caseRecord.prosecutor_name %></div>
+              <div class="jis-meta">State / Government Prosecution Counsel</div>
+            </div>
+          <% } else { %>
+            <div class="p-3 rounded border bg-light jis-meta">
+              <i class="bi bi-dash-circle me-1"></i>No Public Prosecutor assigned to this docket.
+            </div>
+          <% } %>
+        </div>
+
+        <div>
+          <span class="jis-label">Advocate / Defence Counsel</span>
+          <% if (caseRecord.advocate_name) { %>
+            <div class="p-3 rounded border bg-light">
+              <div class="fw-semibold text-dark"><i class="bi bi-person-lines-fill me-2 text-primary"></i><%= caseRecord.advocate_name %></div>
+              <div class="jis-meta">Authorized on record via Vakalatnama filing</div>
+            </div>
+          <% } else { %>
+            <div class="p-3 rounded border bg-light jis-meta">
+              <i class="bi bi-file-earmark-lock me-1"></i>No Advocate linked yet. Automatically linked when counsel files a Vakalatnama.
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Hearings & Chronological Schedule -->
+<div class="card mb-4">
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-calendar3 text-primary"></i>
+        <h2 class="jis-section-title">Hearings Schedule (<%= hearings.length %>)</h2>
+      </div>
+    </div>
+    <a href="/registrar/hearings?case_id=<%= caseRecord.id %>" class="btn btn-sm btn-primary">
+      <i class="bi bi-calendar-plus me-1"></i>Schedule Hearing
+    </a>
+  </div>
+
+  <div class="card-body p-0">
+    <% if (hearings && hearings.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Hearing Date</th>
+              <th>Time</th>
+              <th>Court Room</th>
+              <th>Hearing Type</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% hearings.forEach(h => { %>
+              <tr>
+                <td class="fw-semibold"><%= new Date(h.hearing_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
+                <td><%= h.hearing_time ? h.hearing_time.slice(0, 5) : '—' %></td>
+                <td><%= h.court_room || '—' %></td>
+                <td><span class="jis-badge"><%= h.hearing_type %></span></td>
+                <td>
+                  <% if (h.status === 'Scheduled') { %>
+                    <span class="jis-badge jis-badge-success"><i class="bi bi-check-circle"></i> <%= h.status %></span>
+                  <% } else if (h.status === 'Completed') { %>
+                    <span class="jis-badge"><i class="bi bi-check2-all"></i> <%= h.status %></span>
+                  <% } else { %>
+                    <span class="jis-badge jis-badge-warning"><i class="bi bi-clock"></i> <%= h.status %></span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="jis-empty-state">
+        <i class="bi bi-calendar-x jis-empty-icon" aria-hidden="true"></i>
+        <div class="jis-empty-title">No hearings scheduled for this case</div>
+        <p class="jis-empty-text">Schedule the first court hearing date and courtroom assignment for this case.</p>
+        <a href="/registrar/hearings?case_id=<%= caseRecord.id %>" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-calendar-plus me-1"></i>Schedule First Hearing
+        </a>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- 5. Case Documents Repository -->
+<div class="card mb-4">
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-folder2-open text-primary"></i>
+      <h2 class="jis-section-title">Case Documents (<%= documents.length %>)</h2>
+    </div>
+    <span class="jis-badge"><%= documents.length %> File(s)</span>
+  </div>
+
+  <div class="card-body">
+    <!-- Guided Upload Form -->
+    <form action="/registrar/cases/<%= caseRecord.id %>/documents?_csrf=<%= encodeURIComponent(typeof csrfToken !== 'undefined' ? csrfToken : '') %>"
+          method="POST"
+          enctype="multipart/form-data"
+          class="p-3 rounded border bg-light mb-4">
+      <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+      <div class="fw-semibold small text-dark mb-2">
+        <i class="bi bi-cloud-arrow-up me-1 text-primary"></i>Upload Case Document
+      </div>
+      <div class="row g-3">
+        <div class="col-12 col-md-3">
+          <label for="document_type" class="form-label">Document Type <span class="text-danger">*</span></label>
+          <select class="form-select form-select-sm" id="document_type" name="document_type" required>
+            <option value="" disabled selected>Select Type...</option>
+            <option value="FIR">FIR (First Information Report)</option>
+            <option value="Charge Sheet">Charge Sheet</option>
+            <option value="Affidavit">Affidavit</option>
+            <option value="Other">Other Document</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label for="document" class="form-label">Select File <span class="text-danger">*</span></label>
+          <input class="form-control form-control-sm" type="file" id="document" name="document" accept=".pdf,.docx,.jpg,.jpeg,.png" required>
+          <div class="form-text">Accepted: PDF, DOCX, JPG, PNG (Max 10 MB)</div>
+        </div>
+        <div class="col-12 col-md-3">
+          <label for="description" class="form-label">Description (Optional)</label>
+          <input type="text" class="form-control form-control-sm" id="description" name="description" placeholder="e.g. Certified copy of FIR">
+        </div>
+        <div class="col-12 col-md-2 d-flex align-items-start pt-md-4">
+          <button type="submit" class="btn btn-sm btn-primary w-100 mt-md-1">
+            <i class="bi bi-upload me-1"></i>Upload
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Uploaded Documents Table -->
+    <% if (documents && documents.length > 0) { %>
+      <div class="table-responsive border rounded">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Document Type</th>
+              <th>File Name</th>
+              <th>Description</th>
+              <th>Uploaded On</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% documents.forEach(doc => { %>
+              <tr>
+                <td><span class="jis-badge jis-badge-navy"><%= doc.document_type %></span></td>
+                <td class="fw-medium">
+                  <i class="bi bi-file-earmark-text text-primary me-1"></i><%= doc.original_name %>
+                </td>
+                <td class="jis-meta"><%= doc.description || '—' %></td>
+                <td class="jis-meta"><%= new Date(doc.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
+                <td class="text-end">
+                  <a href="/documents/document/<%= doc.id %>" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-download me-1"></i>View / Download
+                  </a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="jis-empty-state py-4 border rounded bg-light">
+        <i class="bi bi-files jis-empty-icon" aria-hidden="true"></i>
+        <div class="jis-empty-title">No case documents uploaded yet</div>
+        <p class="jis-empty-text mb-0">Use the form above to attach FIRs, charge sheets, affidavits, or supporting records.</p>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- 6. Applicable Legal Sections & Judgments -->
+<%- include('../partials/caseLegalPanel') %>
+
+<!-- 7. Appeal History Timeline -->
+<%- include('../partials/appealHistory') %>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,965 @@
+/* ==========================================================================
+   JIS — Judiciary Information System | Global Design System & Core Shell
+   Design Direction: Modern Indian Government / Judicial Portal
+   Calm, trustworthy, institutional light theme with restrained navy accents.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ── Core Palette ────────────────────────────────────────────────── */
+  --jis-primary:        #1e3a8a;
+  --jis-primary-hover:  #172554;
+  --jis-primary-subtle: #eff6ff;
+  --jis-primary-border: #bfdbfe;
+
+  --jis-bg:             #f4f6f9;
+  --jis-surface:        #ffffff;
+  --jis-surface-muted:  #f8fafc;
+  --jis-surface-hover:  #f1f5f9;
+
+  --jis-border:         #e2e8f0;
+  --jis-border-strong:  #cbd5e1;
+
+  --jis-text:           #0f172a;
+  --jis-text-secondary: #334155;
+  --jis-text-muted:     #64748b;
+
+  /* ── Semantic Feedback Colours ───────────────────────────────────── */
+  --jis-success:        #15803d;
+  --jis-success-bg:     #f0fdf4;
+  --jis-success-border: #bbf7d0;
+
+  --jis-warning:        #b45309;
+  --jis-warning-bg:     #fffbeb;
+  --jis-warning-border: #fde68a;
+
+  --jis-danger:         #b91c1c;
+  --jis-danger-bg:      #fef2f2;
+  --jis-danger-border:  #fecaca;
+
+  --jis-info:           #0369a1;
+  --jis-info-bg:        #f0f9ff;
+  --jis-info-border:    #bae6fd;
+
+  /* ── Case Status Colours (Consistent System-Wide) ────────────────── */
+  /* 1. Filed */
+  --status-filed-text:       #0369a1;
+  --status-filed-bg:         #f0f9ff;
+  --status-filed-border:     #bae6fd;
+  --status-filed-dot:        #0284c7;
+
+  /* 2. Allocated */
+  --status-allocated-text:   #1e40af;
+  --status-allocated-bg:     #eff6ff;
+  --status-allocated-border: #bfdbfe;
+  --status-allocated-dot:    #2563eb;
+
+  /* 3. In Trial */
+  --status-trial-text:       #b45309;
+  --status-trial-bg:         #fffbeb;
+  --status-trial-border:     #fde68a;
+  --status-trial-dot:        #d97706;
+
+  /* 4. Judgement Pending */
+  --status-pending-text:     #b91c1c;
+  --status-pending-bg:       #fef2f2;
+  --status-pending-border:   #fecaca;
+  --status-pending-dot:      #dc2626;
+
+  /* 5. Closed */
+  --status-closed-text:      #334155;
+  --status-closed-bg:        #f1f5f9;
+  --status-closed-border:    #cbd5e1;
+  --status-closed-dot:       #64748b;
+
+  /* ── Typography ──────────────────────────────────────────────────── */
+  --jis-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --jis-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* ── Layout & Elevation ──────────────────────────────────────────── */
+  --jis-sidebar-width:  256px;
+  --jis-header-height:  60px;
+  --jis-content-max:    1380px;
+  --jis-radius-sm:      6px;
+  --jis-radius:         8px;
+  --jis-radius-lg:      10px;
+  --jis-shadow-xs:      0 1px 2px rgba(15, 23, 42, 0.04);
+  --jis-shadow-sm:      0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --jis-shadow-md:      0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+
+  /* Override Bootstrap defaults for harmony */
+  --bs-primary:         #1e3a8a;
+  --bs-primary-rgb:     30, 58, 138;
+  --bs-body-font-family: var(--jis-font-sans);
+  --bs-body-bg:         var(--jis-bg);
+  --bs-body-color:      var(--jis-text);
+  --bs-border-color:    var(--jis-border);
+}
+
+/* ── Base & Typography Hierarchy ───────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--jis-bg);
+  color: var(--jis-text);
+  font-family: var(--jis-font-sans);
+  font-size: 0.9375rem; /* 15px comfortable reading size */
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--jis-text);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.jis-page-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--jis-text);
+  letter-spacing: -0.02em;
+  margin-bottom: 0.15rem;
+}
+
+.jis-page-subtitle {
+  font-size: 0.875rem;
+  color: var(--jis-text-muted);
+  margin-bottom: 0;
+}
+
+.jis-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--jis-text);
+  margin-bottom: 0;
+}
+
+.jis-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--jis-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.jis-meta {
+  font-size: 0.8125rem;
+  color: var(--jis-text-muted);
+}
+
+.font-monospace, code, .jis-case-num {
+  font-family: var(--jis-font-mono) !important;
+  font-size: 0.85em;
+}
+
+code {
+  color: var(--jis-primary);
+  background-color: var(--jis-primary-subtle);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+
+/* ── Accessibility & Focus States ──────────────────────────────────── */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible {
+  outline: 2px solid var(--jis-primary) !important;
+  outline-offset: 1px;
+  box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.15) !important;
+}
+
+/* ── Top Header / Navigation Bar ───────────────────────────────────── */
+.jis-topbar {
+  height: var(--jis-header-height);
+  background-color: var(--jis-surface);
+  border-bottom: 1px solid var(--jis-border);
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.jis-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  color: var(--jis-text);
+}
+
+.jis-brand:hover {
+  color: var(--jis-primary);
+}
+
+.jis-brand-emblem {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--jis-radius-sm);
+  background-color: var(--jis-primary);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+
+.jis-brand-title {
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: var(--jis-text);
+}
+
+.jis-brand-subtitle {
+  font-size: 0.72rem;
+  color: var(--jis-text-muted);
+  font-weight: 500;
+  display: block;
+}
+
+/* Public Navbar links */
+.jis-public-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.jis-public-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--jis-text-secondary);
+  text-decoration: none;
+  border-radius: var(--jis-radius-sm);
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.jis-public-link:hover,
+.jis-public-link.active {
+  background-color: var(--jis-surface-hover);
+  color: var(--jis-primary);
+}
+
+/* ── Authenticated Application Shell (Sidebar + Main Workspace) ────── */
+.jis-shell {
+  display: flex;
+  flex: 1;
+  min-height: calc(100vh - var(--jis-header-height));
+}
+
+.jis-sidebar {
+  width: var(--jis-sidebar-width);
+  background-color: var(--jis-surface);
+  border-right: 1px solid var(--jis-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: sticky;
+  top: var(--jis-header-height);
+  height: calc(100vh - var(--jis-header-height));
+  overflow-y: auto;
+  z-index: 1020;
+}
+
+.jis-sidebar-section {
+  padding: 1rem 0.75rem 0.5rem;
+}
+
+.jis-sidebar-heading {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--jis-text-muted);
+  padding: 0 0.65rem;
+  margin-bottom: 0.4rem;
+}
+
+.jis-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.jis-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--jis-radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--jis-text-secondary);
+  text-decoration: none;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.jis-nav-link-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.jis-nav-link i {
+  font-size: 1rem;
+  color: var(--jis-text-muted);
+  width: 1.25rem;
+  text-align: center;
+  transition: color 0.12s ease;
+}
+
+.jis-nav-link:hover {
+  background-color: var(--jis-surface-hover);
+  color: var(--jis-text);
+}
+
+.jis-nav-link:hover i {
+  color: var(--jis-primary);
+}
+
+.jis-nav-link.active {
+  background-color: var(--jis-primary-subtle);
+  color: var(--jis-primary);
+  font-weight: 600;
+}
+
+.jis-nav-link.active i {
+  color: var(--jis-primary);
+}
+
+.jis-sidebar-footer {
+  margin-top: auto;
+  padding: 0.875rem 1rem;
+  border-top: 1px solid var(--jis-border);
+  background-color: var(--jis-surface-muted);
+}
+
+/* Main Content Area inside Shell */
+.jis-main-workspace {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.jis-main-content {
+  flex: 1;
+  width: 100%;
+  max-width: var(--jis-content-max);
+  margin: 0 auto;
+  padding: 1.5rem 1.75rem 3rem;
+}
+
+/* When existing views use <div class="container py-4">, normalize inside shell */
+.jis-main-content > .container,
+.jis-main-content > .container-fluid {
+  max-width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0 !important;
+}
+
+/* Public standalone main wrapper */
+.jis-public-main {
+  flex: 1;
+  width: 100%;
+}
+
+/* ── Mobile Sidebar Overlay (< 992px) ──────────────────────────────── */
+.jis-sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.45);
+  z-index: 1035;
+}
+
+@media (max-width: 991.98px) {
+  .jis-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100vh;
+    z-index: 1040;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: var(--jis-shadow-md);
+  }
+
+  body.jis-sidebar-open .jis-sidebar {
+    transform: translateX(0);
+  }
+
+  body.jis-sidebar-open .jis-sidebar-backdrop {
+    display: block;
+  }
+
+  .jis-main-content {
+    padding: 1.25rem 1rem 2.5rem;
+  }
+}
+
+/* ── Cards & Surfaces ──────────────────────────────────────────────── */
+.card,
+.jis-card {
+  background-color: var(--jis-surface);
+  border: 1px solid var(--jis-border) !important;
+  border-radius: var(--jis-radius);
+  box-shadow: var(--jis-shadow-xs) !important;
+}
+
+.card-header,
+.jis-card-header {
+  background-color: var(--jis-surface) !important;
+  color: var(--jis-text) !important;
+  border-bottom: 1px solid var(--jis-border) !important;
+  padding: 0.875rem 1.25rem;
+  font-weight: 600;
+  border-radius: var(--jis-radius) var(--jis-radius) 0 0 !important;
+}
+
+/* Neutralize legacy dark/primary card headers into clean institutional headers */
+.card-header.bg-dark,
+.card-header.bg-primary {
+  background-color: var(--jis-surface-muted) !important;
+  color: var(--jis-text) !important;
+  border-bottom: 1px solid var(--jis-border) !important;
+}
+
+.card-header.bg-dark .text-white,
+.card-header.bg-dark .text-light,
+.card-header.bg-primary .text-white {
+  color: var(--jis-text-secondary) !important;
+}
+
+.card-body {
+  padding: 1.25rem;
+}
+
+a.card:hover,
+a.jis-action-card:hover {
+  border-color: var(--jis-primary-border) !important;
+  box-shadow: var(--jis-shadow-sm) !important;
+  text-decoration: none;
+}
+
+/* ── Compact KPI Stat Strip ────────────────────────────────────────── */
+.jis-stat-card {
+  background-color: var(--jis-surface);
+  border: 1px solid var(--jis-border);
+  border-radius: var(--jis-radius);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  height: 100%;
+  box-shadow: var(--jis-shadow-xs);
+}
+
+.jis-stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--jis-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.jis-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--jis-text);
+  line-height: 1.2;
+}
+
+.jis-stat-meta {
+  font-size: 0.78rem;
+  color: var(--jis-text-muted);
+  margin-top: 0.25rem;
+}
+
+.jis-stat-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--jis-radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.jis-stat-icon.navy {
+  background-color: var(--jis-primary-subtle);
+  color: var(--jis-primary);
+}
+.jis-stat-icon.amber {
+  background-color: var(--jis-warning-bg);
+  color: var(--jis-warning);
+}
+.jis-stat-icon.green {
+  background-color: var(--jis-success-bg);
+  color: var(--jis-success);
+}
+.jis-stat-icon.red {
+  background-color: var(--jis-danger-bg);
+  color: var(--jis-danger);
+}
+
+/* ── Status Badges (Consistent Colours + Non-Colour Indicator) ────── */
+.jis-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.jis-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.jis-status-filed {
+  color: var(--status-filed-text);
+  background-color: var(--status-filed-bg);
+  border-color: var(--status-filed-border);
+}
+.jis-status-filed .jis-status-dot { background-color: var(--status-filed-dot); }
+
+.jis-status-allocated {
+  color: var(--status-allocated-text);
+  background-color: var(--status-allocated-bg);
+  border-color: var(--status-allocated-border);
+}
+.jis-status-allocated .jis-status-dot { background-color: var(--status-allocated-dot); }
+
+.jis-status-trial {
+  color: var(--status-trial-text);
+  background-color: var(--status-trial-bg);
+  border-color: var(--status-trial-border);
+}
+.jis-status-trial .jis-status-dot { background-color: var(--status-trial-dot); }
+
+.jis-status-pending {
+  color: var(--status-pending-text);
+  background-color: var(--status-pending-bg);
+  border-color: var(--status-pending-border);
+}
+.jis-status-pending .jis-status-dot { background-color: var(--status-pending-dot); }
+
+.jis-status-closed {
+  color: var(--status-closed-text);
+  background-color: var(--status-closed-bg);
+  border-color: var(--status-closed-border);
+}
+.jis-status-closed .jis-status-dot { background-color: var(--status-closed-dot); }
+
+/* General Pill / Tag Badge */
+.jis-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--jis-radius-sm);
+  border: 1px solid var(--jis-border);
+  background-color: var(--jis-surface-muted);
+  color: var(--jis-text-secondary);
+  white-space: nowrap;
+}
+
+.jis-badge-navy {
+  background-color: var(--jis-primary-subtle);
+  border-color: var(--jis-primary-border);
+  color: var(--jis-primary);
+}
+
+.jis-badge-success {
+  background-color: var(--jis-success-bg);
+  border-color: var(--jis-success-border);
+  color: var(--jis-success);
+}
+
+.jis-badge-warning {
+  background-color: var(--jis-warning-bg);
+  border-color: var(--jis-warning-border);
+  color: var(--jis-warning);
+}
+
+.jis-badge-danger {
+  background-color: var(--jis-danger-bg);
+  border-color: var(--jis-danger-border);
+  color: var(--jis-danger);
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────── */
+.btn {
+  font-weight: 500;
+  font-size: 0.875rem;
+  border-radius: var(--jis-radius-sm);
+  padding: 0.45rem 0.9rem;
+  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.btn-sm {
+  font-size: 0.8125rem;
+  padding: 0.3rem 0.65rem;
+}
+
+.btn-primary,
+.btn-dark {
+  background-color: var(--jis-primary) !important;
+  border-color: var(--jis-primary) !important;
+  color: #ffffff !important;
+}
+
+.btn-primary:hover,
+.btn-dark:hover {
+  background-color: var(--jis-primary-hover) !important;
+  border-color: var(--jis-primary-hover) !important;
+}
+
+.btn-outline-dark,
+.btn-outline-primary {
+  color: var(--jis-primary);
+  border-color: var(--jis-border-strong);
+  background-color: var(--jis-surface);
+}
+
+.btn-outline-dark:hover,
+.btn-outline-primary:hover {
+  background-color: var(--jis-surface-hover);
+  border-color: var(--jis-primary);
+  color: var(--jis-primary);
+}
+
+/* ── Forms, Inputs & Selects ───────────────────────────────────────── */
+.form-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--jis-text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+.form-control,
+.form-select {
+  font-size: 0.875rem;
+  border-color: var(--jis-border-strong);
+  border-radius: var(--jis-radius-sm);
+  padding: 0.475rem 0.75rem;
+  color: var(--jis-text);
+  background-color: var(--jis-surface);
+}
+
+.form-control::placeholder {
+  color: #94a3b8;
+}
+
+.form-text {
+  font-size: 0.775rem;
+  color: var(--jis-text-muted);
+}
+
+/* ── Tables (High-Density Readability) ─────────────────────────────── */
+.table {
+  margin-bottom: 0;
+  font-size: 0.85rem;
+  color: var(--jis-text);
+}
+
+.table thead th {
+  background-color: var(--jis-surface-muted);
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+  color: var(--jis-text-muted);
+  border-bottom: 1px solid var(--jis-border);
+  padding: 0.65rem 0.6rem;
+  white-space: nowrap;
+}
+
+.table thead th:first-child,
+.table tbody td:first-child {
+  padding-left: 1rem;
+}
+
+.table thead th:last-child,
+.table tbody td:last-child {
+  padding-right: 1rem;
+}
+
+.table tbody td {
+  padding: 0.65rem 0.6rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--jis-border);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* ── Filter & Search Toolbar ───────────────────────────────────────── */
+.jis-toolbar {
+  background-color: var(--jis-surface);
+  border: 1px solid var(--jis-border);
+  border-radius: var(--jis-radius);
+  padding: 0.875rem 1rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--jis-shadow-xs);
+}
+
+/* ── Breadcrumbs ───────────────────────────────────────────────────── */
+.breadcrumb {
+  font-size: 0.8125rem;
+  margin-bottom: 0.75rem;
+}
+
+.breadcrumb-item a {
+  color: var(--jis-text-muted);
+  text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+  color: var(--jis-primary);
+  text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+  color: var(--jis-text-secondary);
+  font-weight: 500;
+}
+
+/* ── Visual Hierarchy Stepper (State -> HC -> Bench -> District -> Level -> Court) ── */
+.jis-hierarchy-chain {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+}
+
+.jis-hierarchy-node {
+  background-color: var(--jis-surface-muted);
+  border: 1px solid var(--jis-border);
+  border-radius: var(--jis-radius-sm);
+  padding: 0.75rem 0.875rem;
+  position: relative;
+}
+
+.jis-hierarchy-step {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--jis-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.25rem;
+}
+
+.jis-hierarchy-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--jis-text);
+  line-height: 1.3;
+}
+
+.jis-hierarchy-sub {
+  font-size: 0.75rem;
+  color: var(--jis-text-muted);
+  margin-top: 0.15rem;
+}
+
+/* ── Case Lifecycle Progress Bar ───────────────────────────────────── */
+.jis-lifecycle-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  background-color: var(--jis-surface-muted);
+  border-top: 1px solid var(--jis-border);
+  border-bottom: 1px solid var(--jis-border);
+}
+
+.jis-lifecycle-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--jis-text-muted);
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--jis-radius-sm);
+}
+
+.jis-lifecycle-step.completed {
+  color: var(--jis-success);
+  background-color: var(--jis-success-bg);
+}
+
+.jis-lifecycle-step.current {
+  color: var(--jis-primary);
+  background-color: var(--jis-primary-subtle);
+  border: 1px solid var(--jis-primary-border);
+  font-weight: 600;
+}
+
+.jis-lifecycle-sep {
+  color: var(--jis-border-strong);
+  font-size: 0.75rem;
+}
+
+/* ── Chronological Timeline ────────────────────────────────────────── */
+.jis-timeline {
+  position: relative;
+  padding-left: 1.75rem;
+}
+
+.jis-timeline::before {
+  content: '';
+  position: absolute;
+  left: 0.55rem;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 2px;
+  background-color: var(--jis-border-strong);
+}
+
+.jis-timeline-item {
+  position: relative;
+  padding-bottom: 1rem;
+}
+
+.jis-timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.jis-timeline-marker {
+  position: absolute;
+  left: -1.55rem;
+  top: 0.35rem;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: var(--jis-surface);
+  border: 3px solid var(--jis-primary);
+}
+
+.jis-timeline-item.active .jis-timeline-marker {
+  background-color: var(--jis-primary);
+  box-shadow: 0 0 0 3px var(--jis-primary-subtle);
+}
+
+.jis-timeline-card {
+  background-color: var(--jis-surface);
+  border: 1px solid var(--jis-border);
+  border-radius: var(--jis-radius-sm);
+  padding: 0.875rem 1rem;
+}
+
+.jis-timeline-item.active .jis-timeline-card {
+  border-color: var(--jis-primary-border);
+  background-color: var(--jis-primary-subtle);
+}
+
+/* ── Empty States ──────────────────────────────────────────────────── */
+.jis-empty-state {
+  text-align: center;
+  padding: 2.5rem 1.25rem;
+  color: var(--jis-text-muted);
+}
+
+.jis-empty-icon {
+  font-size: 1.75rem;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.jis-empty-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--jis-text-secondary);
+  margin-bottom: 0.2rem;
+}
+
+.jis-empty-text {
+  font-size: 0.8125rem;
+  color: var(--jis-text-muted);
+  max-width: 420px;
+  margin: 0 auto 0.85rem;
+}
+
+/* ── Notifications ─────────────────────────────────────────────────── */
+.unread-item {
+  border-left: 3px solid var(--jis-primary) !important;
+  background-color: var(--jis-primary-subtle) !important;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────── */
+.jis-footer {
+  background-color: var(--jis-surface);
+  border-top: 1px solid var(--jis-border);
+  color: var(--jis-text-muted);
+  font-size: 0.8125rem;
+  padding: 1rem 1.75rem;
+  margin-top: auto;
+}
+
+@media (max-width: 575.98px) {
+  .jis-badge {
+    white-space: normal;
+    text-align: left;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .jis-footer {
+    padding: 0.85rem 1rem;
+  }
+}
+

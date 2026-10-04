@@ -1,0 +1,296 @@
+<%- include('../partials/header', { title: 'All Cases – JIS' }) %>
+
+<%
+  const pageInfo = (typeof pagination !== 'undefined' && pagination) ? pagination : {
+    page: 1,
+    limit: cases.length || 100,
+    total: cases.length,
+    totalPages: 1
+  };
+  const startRow = pageInfo.total > 0 ? ((pageInfo.page - 1) * pageInfo.limit) + 1 : 0;
+  const endRow = Math.min(pageInfo.page * pageInfo.limit, pageInfo.total);
+%>
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/registrar/dashboard">Registrar Dashboard</a></li>
+    <li class="breadcrumb-item active" aria-current="page">All Cases</li>
+  </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <h1 class="jis-page-title">All Cases</h1>
+    <p class="jis-page-subtitle">
+      Total Registered Dockets: <strong><%= Number(pageInfo.total).toLocaleString('en-IN') %></strong>
+      <% if (pageInfo.total > 0) { %>
+        &bull; Showing <strong><%= startRow %>–<%= endRow %></strong> (Page <%= pageInfo.page %> of <%= Number(pageInfo.totalPages).toLocaleString('en-IN') %>)
+      <% } %>
+    </p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="/registrar/hearings" class="btn btn-outline-primary">
+      <i class="bi bi-calendar3 me-1"></i>Hearings Schedule
+    </a>
+    <a href="/registrar/cases/new" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>File New Case
+    </a>
+  </div>
+</div>
+
+<!-- Filter & Quick Search Toolbar -->
+<div class="jis-toolbar">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-4">
+      <label for="caseTableFilterInput" class="form-label mb-1">Filter Current Page</label>
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white text-muted"><i class="bi bi-search"></i></span>
+        <input type="search"
+               id="caseTableFilterInput"
+               class="form-control"
+               placeholder="Search case number, title, petitioner, respondent, or court...">
+      </div>
+    </div>
+
+    <div class="col-6 col-md-2">
+      <label for="caseTypeFilterSelect" class="form-label mb-1">Case Type</label>
+      <select id="caseTypeFilterSelect" class="form-select form-select-sm">
+        <option value="">All Types</option>
+        <option value="Civil">Civil</option>
+        <option value="Criminal">Criminal</option>
+        <option value="Constitutional">Constitutional</option>
+        <option value="Family">Family</option>
+      </select>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <label for="caseStatusFilterSelect" class="form-label mb-1">Case Status</label>
+      <select id="caseStatusFilterSelect" class="form-select form-select-sm">
+        <option value="">All Statuses</option>
+        <option value="Filed">Filed</option>
+        <option value="Allocated">Allocated</option>
+        <option value="In Trial">In Trial</option>
+        <option value="Judgement Pending">Judgement Pending</option>
+        <option value="Closed">Closed</option>
+      </select>
+    </div>
+
+    <div class="col-6 col-md-2">
+      <label for="caseJudgeFilterSelect" class="form-label mb-1">Allocation</label>
+      <select id="caseJudgeFilterSelect" class="form-select form-select-sm">
+        <option value="">All Cases</option>
+        <option value="unassigned">Pending Allocation</option>
+        <option value="assigned">Judge Assigned</option>
+      </select>
+    </div>
+
+    <div class="col-6 col-md-1">
+      <button type="button" id="resetCaseFiltersBtn" class="btn btn-sm btn-outline-secondary w-100" title="Clear filters">
+        Reset
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Cases Table Card -->
+<div class="card">
+  <div class="card-body p-0">
+    <% if (cases && cases.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle" id="registrarCasesTable">
+          <thead>
+            <tr>
+              <th>Case Number</th>
+              <th>Case Title &amp; Parties</th>
+              <th>Jurisdiction</th>
+              <th>Type &amp; Access</th>
+              <th>Presiding Judge</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% cases.forEach(c => { %>
+              <tr data-case-type="<%= c.case_type %>"
+                  data-case-status="<%= c.status %>"
+                  data-judge-assigned="<%= c.judge_name ? 'assigned' : 'unassigned' %>">
+                <td class="text-nowrap">
+                  <a href="/registrar/cases/<%= c.id %>" class="text-decoration-none fw-semibold font-monospace d-block" style="color: var(--jis-primary);">
+                    <%= c.case_number %>
+                  </a>
+                  <span class="jis-meta">Filed <%= new Date(c.filing_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></span>
+                </td>
+                <td style="max-width: 175px;">
+                  <a href="/registrar/cases/<%= c.id %>" class="text-decoration-none fw-semibold text-dark d-block text-truncate" title="<%= c.title %>">
+                    <%= c.title %>
+                  </a>
+                  <div class="jis-meta text-truncate" title="<%= c.petitioner_name %> vs <%= c.respondent_name %>">
+                    <%= c.petitioner_name %> <span class="text-muted">vs</span> <%= c.respondent_name %>
+                  </div>
+                </td>
+                <td style="max-width: 140px;">
+                  <% if (c.high_court_name || c.district_name) { %>
+                    <div class="small fw-medium text-dark text-truncate" title="<%= c.district_name ? c.district_name : c.high_court_name %>">
+                      <%= c.district_name ? c.district_name : c.high_court_name %>
+                    </div>
+                    <div class="jis-meta text-truncate" style="font-size: 0.75rem;">
+                      <%= c.court_level_name || c.high_court_name || '' %>
+                    </div>
+                  <% } else { %>
+                    <span class="jis-meta">General</span>
+                  <% } %>
+                </td>
+                <td class="text-nowrap">
+                  <span class="jis-badge"><%= c.case_type %></span>
+                  <% if (c.is_public) { %>
+                    <span class="jis-badge jis-badge-success ms-1" title="Visible on Public Citizen Portal">
+                      <i class="bi bi-globe2"></i> Public
+                    </span>
+                  <% } else { %>
+                    <span class="jis-badge ms-1" title="Restricted to authorized court staff and counsel">
+                      <i class="bi bi-lock"></i> Private
+                    </span>
+                  <% } %>
+                </td>
+                <td class="text-nowrap">
+                  <% if (c.judge_name) { %>
+                    <span class="small fw-medium text-dark">
+                      <i class="bi bi-person-check text-primary me-1"></i><%= c.judge_name %>
+                    </span>
+                  <% } else { %>
+                    <span class="jis-badge jis-badge-warning" title="Pending Judge Allocation">
+                      <i class="bi bi-exclamation-circle"></i> Unassigned
+                    </span>
+                  <% } %>
+                </td>
+                <td class="text-nowrap">
+                  <%- include('../partials/statusBadge', { status: c.status }) %>
+                </td>
+                <td class="text-end text-nowrap">
+                  <div class="d-inline-flex gap-1">
+                    <a href="/registrar/cases/<%= c.id %>" class="btn btn-sm btn-outline-primary" title="Open case details and allocation">
+                      Manage
+                    </a>
+                    <a href="/registrar/hearings?case_id=<%= c.id %>" class="btn btn-sm btn-outline-secondary" title="Schedule hearing for this case" aria-label="Schedule hearing for <%= c.case_number %>">
+                      <i class="bi bi-calendar-plus"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty Filter State (hidden unless client filter matches 0 rows) -->
+      <div id="caseFilterEmptyState" class="jis-empty-state d-none">
+        <i class="bi bi-funnel jis-empty-icon" aria-hidden="true"></i>
+        <div class="jis-empty-title">No cases on this page match your filter</div>
+        <p class="jis-empty-text">Try clearing the filter controls above or navigating to another page.</p>
+      </div>
+
+      <!-- Server-Side Pagination Footer -->
+      <% if (pageInfo.totalPages > 1) { %>
+        <div class="px-3 py-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-2 bg-light">
+          <div class="jis-meta">
+            Page <strong><%= pageInfo.page %></strong> of <strong><%= Number(pageInfo.totalPages).toLocaleString('en-IN') %></strong>
+            (<%= Number(pageInfo.total).toLocaleString('en-IN') %> total cases)
+          </div>
+          <nav aria-label="Cases pagination">
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item <%= pageInfo.page <= 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="/registrar/cases?page=1&limit=<%= pageInfo.limit %>" aria-label="First page">First</a>
+              </li>
+              <li class="page-item <%= pageInfo.page <= 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="/registrar/cases?page=<%= pageInfo.page - 1 %>&limit=<%= pageInfo.limit %>" aria-label="Previous page">&laquo; Prev</a>
+              </li>
+              <%
+                const startP = Math.max(1, pageInfo.page - 2);
+                const endP = Math.min(pageInfo.totalPages, pageInfo.page + 2);
+                for (let p = startP; p <= endP; p++) {
+              %>
+                <li class="page-item <%= p === pageInfo.page ? 'active' : '' %>">
+                  <a class="page-link" href="/registrar/cases?page=<%= p %>&limit=<%= pageInfo.limit %>"><%= p %></a>
+                </li>
+              <% } %>
+              <li class="page-item <%= pageInfo.page >= pageInfo.totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="/registrar/cases?page=<%= pageInfo.page + 1 %>&limit=<%= pageInfo.limit %>" aria-label="Next page">Next &raquo;</a>
+              </li>
+              <li class="page-item <%= pageInfo.page >= pageInfo.totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="/registrar/cases?page=<%= pageInfo.totalPages %>&limit=<%= pageInfo.limit %>" aria-label="Last page">Last</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      <% } %>
+    <% } else { %>
+      <div class="jis-empty-state">
+        <i class="bi bi-folder-x jis-empty-icon" aria-hidden="true"></i>
+        <div class="jis-empty-title">No cases registered yet</div>
+        <p class="jis-empty-text">Start by filing a new case in the court registry.</p>
+        <a href="/registrar/cases/new" class="btn btn-sm btn-primary">
+          <i class="bi bi-plus-lg me-1"></i>File First Case
+        </a>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('caseTableFilterInput');
+    const typeSelect = document.getElementById('caseTypeFilterSelect');
+    const statusSelect = document.getElementById('caseStatusFilterSelect');
+    const judgeSelect = document.getElementById('caseJudgeFilterSelect');
+    const resetBtn = document.getElementById('resetCaseFiltersBtn');
+    const table = document.getElementById('registrarCasesTable');
+    const emptyState = document.getElementById('caseFilterEmptyState');
+
+    if (!table) return;
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+    function applyFilters() {
+      const q = (searchInput ? searchInput.value : '').trim().toLowerCase();
+      const typeVal = typeSelect ? typeSelect.value : '';
+      const statusVal = statusSelect ? statusSelect.value : '';
+      const judgeVal = judgeSelect ? judgeSelect.value : '';
+
+      let visibleCount = 0;
+      rows.forEach(row => {
+        const textMatch = !q || row.textContent.toLowerCase().includes(q);
+        const typeMatch = !typeVal || row.getAttribute('data-case-type') === typeVal;
+        const statusMatch = !statusVal || row.getAttribute('data-case-status') === statusVal;
+        const judgeMatch = !judgeVal || row.getAttribute('data-judge-assigned') === judgeVal;
+
+        if (textMatch && typeMatch && statusMatch && judgeMatch) {
+          row.classList.remove('d-none');
+          visibleCount++;
+        } else {
+          row.classList.add('d-none');
+        }
+      });
+
+      if (emptyState) {
+        emptyState.classList.toggle('d-none', visibleCount > 0);
+      }
+    }
+
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (typeSelect) typeSelect.addEventListener('change', applyFilters);
+    if (statusSelect) statusSelect.addEventListener('change', applyFilters);
+    if (judgeSelect) judgeSelect.addEventListener('change', applyFilters);
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (searchInput) searchInput.value = '';
+        if (typeSelect) typeSelect.value = '';
+        if (statusSelect) statusSelect.value = '';
+        if (judgeSelect) judgeSelect.value = '';
+        applyFilters();
+      });
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,41 @@
+  <% if (user) { %>
+        </main><!-- /.jis-main-content -->
+        <footer class="jis-footer">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+              <span class="fw-semibold text-dark"><i class="bi bi-bank2 me-1"></i>JIS</span>
+              <span class="ms-1">Judiciary Information System &bull; Unified Court Management &amp; Legal Intelligence</span>
+            </div>
+            <div>
+              <span>Academic Judicial Portal &copy; <%= new Date().getFullYear() %></span>
+            </div>
+          </div>
+        </footer>
+      </div><!-- /.jis-main-workspace -->
+    </div><!-- /.jis-shell -->
+  <% } else { %>
+    </main><!-- /.jis-public-main -->
+    <footer class="jis-footer">
+      <div class="container">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <div>
+            <span class="fw-semibold text-dark"><i class="bi bi-bank2 me-1"></i>JIS</span>
+            <span class="ms-1">Judiciary Information System &bull; Public Citizen &amp; Legal Information Portal</span>
+          </div>
+          <div>
+            <span>Academic Judicial Portal &copy; <%= new Date().getFullYear() %></span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  <% } %>
+
+  <!-- Bootstrap 5.3.3 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmqqOF3GiTFZiSa3Ff9GndvRuPX"
+          crossorigin="anonymous"></script>
+
+  <!-- JIS Client-Side Shell & UI Helpers -->
+  <script src="/js/main.js"></script>
+</body>
+</html>

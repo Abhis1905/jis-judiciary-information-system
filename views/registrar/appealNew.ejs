@@ -1,0 +1,197 @@
+<%- include('../partials/header', { title: `File Appeal – Case ${caseRecord.case_number} – JIS` }) %>
+
+<div class="container py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/registrar/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="/registrar/cases">Cases</a></li>
+      <li class="breadcrumb-item"><a href="/registrar/cases/<%= caseRecord.id %>"><%= caseRecord.case_number %></a></li>
+      <li class="breadcrumb-item active">New Appeal Filing</li>
+    </ol>
+  </nav>
+
+  <!-- Header Banner -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-dark text-white py-3">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <span class="badge bg-secondary mb-1"><%= caseRecord.case_type %></span>
+          <h4 class="mb-0 fw-bold">Initiate Statutory Appeal & Escalation</h4>
+          <span class="font-monospace small text-light opacity-75">Originating Case: <%= caseRecord.case_number %></span>
+        </div>
+        <span class="badge bg-info text-dark fs-6">
+          Current Tier: <%= caseRecord.court_level_name || 'Trial Forum' %>
+        </span>
+      </div>
+    </div>
+
+    <!-- Original Case Summary -->
+    <div class="card-body bg-light">
+      <div class="row g-3">
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Original Case Title</p>
+          <p class="fw-semibold text-dark mb-0"><%= caseRecord.title %></p>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Petitioner / Appellant</p>
+          <p class="fw-semibold text-dark mb-0"><%= caseRecord.petitioner_name %></p>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Respondent</p>
+          <p class="fw-semibold text-dark mb-0"><%= caseRecord.respondent_name %></p>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Original Filing Date</p>
+          <p class="fw-semibold text-dark mb-0"><%= new Date(caseRecord.filing_date).toLocaleDateString('en-IN') %></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statutory Appellate Pathways Reference -->
+  <% if (destinations && destinations.length > 0) { %>
+    <div class="alert alert-info border shadow-sm mb-4">
+      <h6 class="fw-bold mb-2"><i class="bi bi-diagram-3-fill me-2"></i>Statutory Appellate Pathways Available for this Case:</h6>
+      <ul class="mb-0 small">
+        <% destinations.forEach(d => { %>
+          <li class="mb-1">
+            <strong>&rarr; <%= d.destination_level_name %></strong>: <%= d.appeal_type %>
+            <% if (d.governing_statute) { %>
+              <span class="text-muted">(<%= d.governing_statute %>)</span>
+            <% } %>
+          </li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <!-- Appeal Filing Form -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex align-items-center">
+      <i class="bi bi-file-earmark-arrow-up-fill text-primary fs-5 me-2"></i>
+      <div>
+        <div>Appellate Docket Filing Details</div>
+        <small class="text-muted fw-normal">Validate destination court and statutory provisions</small>
+      </div>
+    </div>
+
+    <div class="card-body p-4">
+      <form action="/registrar/cases/<%= caseRecord.id %>/appeals" method="POST">
+        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+        <div class="row g-3">
+
+          <!-- Destination Court Level -->
+          <div class="col-md-6">
+            <label for="destination_court_level_id" class="form-label fw-semibold small">Destination Court Tier <span class="text-danger">*</span></label>
+            <select class="form-select" id="destination_court_level_id" name="destination_court_level_id" required>
+              <option value="" disabled selected>-- Select Destination Court Level --</option>
+              <% if (destinations && destinations.length > 0) { %>
+                <% destinations.forEach(d => { %>
+                  <option value="<%= d.destination_level_id %>" data-tier="<%= d.destination_tier %>">
+                    <%= d.destination_level_name %> (<%= d.category %>)
+                  </option>
+                <% }) %>
+              <% } else { %>
+                <option value="2">High Court</option>
+                <option value="1">Supreme Court of India</option>
+              <% } %>
+            </select>
+            <div class="form-text small">Destination must strictly follow the statutory appellate pathway.</div>
+          </div>
+
+          <!-- Appeal Type -->
+          <div class="col-md-6">
+            <label for="appeal_type" class="form-label fw-semibold small">Statutory Appeal Type <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="appeal_type" name="appeal_type" 
+                   value="<%= destinations && destinations[0] ? destinations[0].appeal_type : '' %>"
+                   placeholder="e.g. Regular First Appeal (RFA), Special Leave Petition (SLP)" required>
+          </div>
+
+          <!-- High Court (Only shown if destination is High Court) -->
+          <div class="col-md-6" id="hc_container">
+            <label for="destination_high_court_id" class="form-label fw-semibold small">Destination High Court</label>
+            <select class="form-select" id="destination_high_court_id" name="destination_high_court_id">
+              <option value="">-- Auto-resolve from originating State --</option>
+              <% if (typeof highCourts !== 'undefined' && highCourts) { %>
+                <% highCourts.forEach(hc => { %>
+                  <option value="<%= hc.id %>" <%= (caseRecord.high_court_id === hc.id) ? 'selected' : '' %>>
+                    <%= hc.name %>
+                  </option>
+                <% }) %>
+              <% } %>
+            </select>
+          </div>
+
+          <!-- Bench (Only shown if destination is High Court) -->
+          <div class="col-md-6" id="bench_container">
+            <label for="destination_bench_id" class="form-label fw-semibold small">High Court Bench / Seat</label>
+            <select class="form-select" id="destination_bench_id" name="destination_bench_id">
+              <option value="">-- Principal Seat / Default Bench --</option>
+              <% if (typeof benches !== 'undefined' && benches) { %>
+                <% benches.forEach(b => { %>
+                  <option value="<%= b.id %>" <%= (caseRecord.bench_id === b.id) ? 'selected' : '' %>>
+                    <%= b.bench_name %> (<%= b.bench_type %>)
+                  </option>
+                <% }) %>
+              <% } %>
+            </select>
+          </div>
+
+          <!-- Filing Date -->
+          <div class="col-md-6">
+            <label for="filing_date" class="form-label fw-semibold small">Appellate Filing Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="filing_date" name="filing_date" value="<%= todayStr %>" required>
+          </div>
+
+          <!-- Grounds of Appeal -->
+          <div class="col-12">
+            <label for="grounds" class="form-label fw-semibold small">Grounds of Appeal / Substantial Question of Law <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="grounds" name="grounds" rows="4" 
+                      placeholder="Specify substantial question of law, errors in lower court decree, constitutional violations, or statutory misinterpretations..." required></textarea>
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="col-12 text-end pt-3 border-top">
+            <a href="/registrar/cases/<%= caseRecord.id %>" class="btn btn-outline-secondary me-2">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-circle me-1"></i>File Appeal & Generate Appellate Docket
+            </button>
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const levelSelect = document.getElementById('destination_court_level_id');
+    const hcContainer = document.getElementById('hc_container');
+    const benchContainer = document.getElementById('bench_container');
+
+    function toggleFields() {
+      const selectedOpt = levelSelect.options[levelSelect.selectedIndex];
+      const tier = selectedOpt ? parseInt(selectedOpt.getAttribute('data-tier'), 10) : null;
+
+      if (tier === 1) {
+        // Supreme Court: Hide HC / Bench select
+        hcContainer.style.display = 'none';
+        benchContainer.style.display = 'none';
+      } else {
+        hcContainer.style.display = 'block';
+        benchContainer.style.display = 'block';
+      }
+    }
+
+    if (levelSelect) {
+      levelSelect.addEventListener('change', toggleFields);
+      toggleFields();
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

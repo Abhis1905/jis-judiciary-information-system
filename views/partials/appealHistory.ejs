@@ -1,0 +1,131 @@
+<!-- Statutory Appellate Progression & Case History Partial -->
+<%
+  const history = (typeof appealHistory !== 'undefined' && appealHistory) ? appealHistory : null;
+  const allowAppealFiling = (typeof canFileAppeal !== 'undefined' && canFileAppeal);
+  const isPublicView = (typeof isPublic !== 'undefined' && isPublic);
+  const userRole = (typeof user !== 'undefined' && user) ? user.role : null;
+%>
+
+<div class="card mb-4">
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-diagram-2 text-primary"></i>
+      <h2 class="jis-section-title">Statutory Appellate Progression & Case History</h2>
+    </div>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <% if (history && history.hasAppeals) { %>
+        <span class="jis-badge jis-badge-navy">
+          <%= history.totalLevels %>-Tier Appellate Chain
+        </span>
+      <% } else { %>
+        <span class="jis-badge">Single Forum Docket</span>
+      <% } %>
+
+      <% if (allowAppealFiling && (!history || history.canAppealFurther)) { %>
+        <a href="/registrar/cases/<%= caseRecord.id %>/appeals/new" class="btn btn-sm btn-primary">
+          <i class="bi bi-arrow-up-right-circle me-1"></i>File / Initiate Appeal
+        </a>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <% if (!history || !history.hasAppeals) { %>
+      <div class="jis-empty-state py-4 border rounded bg-light">
+        <i class="bi bi-clock-history jis-empty-icon" aria-hidden="true"></i>
+        <div class="jis-empty-title">No appeal filed</div>
+        <p class="jis-empty-text">This case is proceeding in its filing forum without active appellate escalation.</p>
+        <% if (allowAppealFiling) { %>
+          <a href="/registrar/cases/<%= caseRecord.id %>/appeals/new" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-lg me-1"></i>Initiate Appellate Escalation
+          </a>
+        <% } %>
+      </div>
+    <% } else { %>
+      <!-- Chronological Vertical Timeline -->
+      <div class="jis-timeline">
+        <% history.chain.forEach(function(node, index) { %>
+          <div class="jis-timeline-item <%= node.isCurrent ? 'active' : '' %>">
+            <span class="jis-timeline-marker" aria-hidden="true"></span>
+            <div class="jis-timeline-card">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+                <div>
+                  <span class="fw-semibold text-dark"><%= index + 1 %>. <%= node.levelName %></span>
+                  <% if (node.isCurrent) { %>
+                    <span class="jis-badge jis-badge-navy ms-1">Currently Viewing</span>
+                  <% } %>
+                  <% if (node.isRoot) { %>
+                    <span class="jis-badge ms-1">Original Forum</span>
+                  <% } else { %>
+                    <span class="jis-badge jis-badge-warning ms-1">Appellate Forum</span>
+                  <% } %>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <%- include('./statusBadge', { status: node.status }) %>
+                  <% if (node.appealStatus && !node.isRoot) { %>
+                    <span class="jis-badge">Appeal: <%= node.appealStatus %></span>
+                  <% } %>
+                </div>
+              </div>
+
+              <div class="row g-2 small text-secondary">
+                <div class="col-12 col-md-4">
+                  <span class="text-muted">Case Number:</span>
+                  <span class="font-monospace fw-semibold text-dark ms-1"><%= node.caseNumber %></span>
+                </div>
+                <div class="col-12 col-md-4">
+                  <span class="text-muted">Filing Date:</span>
+                  <span class="text-dark ms-1"><%= new Date(node.filingDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></span>
+                </div>
+                <div class="col-12 col-md-4">
+                  <span class="text-muted">Jurisdiction:</span>
+                  <span class="text-dark ms-1">
+                    <%= node.highCourtName || 'Apex (All-India)' %>
+                    <% if (node.benchName) { %> (<%= node.benchName %>) <% } %>
+                    <% if (node.districtName) { %> &bull; <%= node.districtName %> <% } %>
+                  </span>
+                </div>
+
+                <% if (!node.isRoot && node.appealType) { %>
+                  <div class="col-12 mt-2 pt-2 border-top">
+                    <div>
+                      <strong class="text-dark">Appeal Type:</strong>
+                      <span class="text-dark"><%= node.appealType %></span>
+                      <% if (node.governingStatute) { %>
+                        <span class="text-muted">(<%= node.governingStatute %>)</span>
+                      <% } %>
+                    </div>
+                    <% if (node.grounds) { %>
+                      <div class="jis-meta mt-1">
+                        <strong>Grounds:</strong> <%= node.grounds %>
+                      </div>
+                    <% } %>
+                  </div>
+                <% } %>
+              </div>
+
+              <% if (!node.isCurrent) { %>
+                <div class="text-end mt-2 pt-2 border-top">
+                  <%
+                    let targetUrl = `/case/${node.caseId}`;
+                    if (userRole === 'registrar') targetUrl = `/registrar/cases/${node.caseId}`;
+                    else if (userRole === 'judge') targetUrl = `/judge/cases/${node.caseId}`;
+                    else if (userRole === 'prosecutor') targetUrl = `/prosecutor/cases/${node.caseId}`;
+                    else if (userRole === 'advocate') targetUrl = `/advocate/cases/${node.caseId}`;
+                  %>
+                  <% if (!isPublicView || node.isPublic) { %>
+                    <a href="<%= targetUrl %>" class="btn btn-sm btn-outline-primary py-0 px-2">
+                      Open Docket (<%= node.caseNumber %>) &rarr;
+                    </a>
+                  <% } else { %>
+                    <span class="jis-badge">Private Case Record</span>
+                  <% } %>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+</div>

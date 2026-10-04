@@ -1,0 +1,347 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-3">
+      <li class="breadcrumb-item"><a href="/legal" class="text-decoration-none">Legal Repository</a></li>
+      <li class="breadcrumb-item"><a href="/legal/acts" class="text-decoration-none">Acts</a></li>
+      <li class="breadcrumb-item"><a href="/legal/acts/<%= section.act_id %>" class="text-decoration-none"><%= section.act_short_title %></a></li>
+      <li class="breadcrumb-item active" aria-current="page">Section <%= section.section_number %></li>
+    </ol>
+  </nav>
+
+  <!-- Main Section Header -->
+  <div class="card border-0 shadow-sm p-4 mb-4 bg-light">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge bg-primary fs-6 px-3 py-1">Section <%= section.section_number %></span>
+          <span class="badge <%= section.status === 'Active' ? 'bg-success' : 'bg-secondary' %>"><%= section.status %></span>
+          <span class="badge bg-dark"><%= section.legal_nature %></span>
+          <% if (section.chapter_number) { %>
+            <span class="badge bg-light text-dark border"><%= section.chapter_number %>: <%= section.chapter_title %></span>
+          <% } %>
+        </div>
+        <h2 class="fw-bold text-dark mb-1"><%= section.section_title %></h2>
+        <div class="text-muted small">
+          <strong>Act:</strong> <a href="/legal/acts/<%= section.act_id %>" class="text-decoration-none text-dark fw-semibold"><%= section.act_title %></a>
+          &bull; <strong>Enforced:</strong> <%= new Date(section.valid_from).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+          <% if (section.valid_until) { %>
+            &bull; <strong>Valid Until:</strong> <%= new Date(section.valid_until).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %> (Repealed by 2023 Sanhitas)
+          <% } %>
+        </div>
+      </div>
+
+      <div>
+        <a href="<%= section.source_url %>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-box-arrow-up-right me-1"></i>Official Source
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Left Column: Statutory Text & Judgments -->
+    <div class="col-lg-8">
+
+      <!-- Statutory Text -->
+      <div class="card border-0 shadow-sm p-4 mb-4">
+        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+          <i class="bi bi-file-earmark-text me-2 text-primary"></i>Statutory Provision Text
+        </h5>
+        <div class="bg-white p-3 border rounded-3 text-secondary lh-lg mb-3" style="font-size: 1.05rem;">
+          <%= section.section_text %>
+        </div>
+        <div class="small text-muted d-flex justify-content-between align-items-center">
+          <span>Source: <%= section.source_name %></span>
+          <span class="text-uppercase"><%= section.source_type %></span>
+        </div>
+      </div>
+
+      <!-- Linked Landmark Judgments -->
+      <div class="card border-0 shadow-sm p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+          <h5 class="fw-bold text-dark mb-0">
+            <i class="bi bi-award me-2 text-warning"></i>Authoritative Landmark Judgments (<%= linkedJudgments.length %>)
+          </h5>
+          <span class="text-muted small">Interpreting & Applying this section</span>
+        </div>
+
+        <% if (linkedJudgments.length === 0) { %>
+          <div class="text-center text-muted py-4 small">
+            <i class="bi bi-journal-text fs-3 d-block mb-2 text-secondary"></i>
+            No direct case-law annotations registered yet for this provision.
+          </div>
+        <% } else { %>
+          <div class="d-flex flex-column gap-3">
+            <% linkedJudgments.forEach(function(j) { %>
+              <div class="border rounded-3 p-3 bg-light">
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <h6 class="fw-bold mb-0">
+                    <a href="/legal/judgments/<%= j.id %>" class="text-decoration-none text-dark hover-primary">
+                      <%= j.case_name %>
+                    </a>
+                  </h6>
+                  <div class="d-flex align-items-center gap-1">
+                    <% if (j.is_synthetic) { %>
+                      <span class="badge bg-secondary-subtle text-secondary border small">SYNTHETIC / REPRESENTATIVE</span>
+                    <% } else { %>
+                      <span class="badge bg-success-subtle text-success border border-success small">REAL / VERIFIED</span>
+                    <% } %>
+                    <span class="badge bg-primary bg-opacity-10 text-primary small"><%= j.relevance_nature %></span>
+                  </div>
+                </div>
+                <div class="text-muted small fw-semibold mb-2">
+                  <i class="bi bi-bookmark me-1"></i><%= j.citation %> &bull; <%= new Date(j.judgment_date).getFullYear() %> &bull; <%= j.court_tier %>
+                </div>
+                <p class="small text-secondary mb-2">
+                  <strong>Key Holding:</strong> <%= j.key_holding %>
+                </p>
+                <div class="text-end">
+                  <a href="/legal/judgments/<%= j.id %>" class="btn btn-sm btn-link text-primary p-0 text-decoration-none fw-semibold">
+                    View Full Judgment Analysis &rarr;
+                  </a>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- JIS Cases Associated With This Provision (Reverse Navigation) -->
+      <div class="card border-0 shadow-sm p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3 flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-briefcase text-primary fs-5"></i>
+            <h5 class="fw-bold text-dark mb-0">
+              JIS Cases Using This Provision (<%= typeof casePagination !== 'undefined' && casePagination ? casePagination.total.toLocaleString('en-IN') : 0 %>)
+            </h5>
+          </div>
+          <span class="badge bg-secondary-subtle text-secondary border">
+            Synthetic Docket Intelligence
+          </span>
+        </div>
+
+        <div class="alert alert-light border small text-muted mb-3 py-2">
+          <i class="bi bi-info-circle me-1 text-primary"></i>
+          <strong>Docket Note:</strong> Cases listed below are from the 100,000 synthetic JIS docket linked to this statutory provision for workflow validation and research analytics.
+        </div>
+
+        <% if (typeof casePagination !== 'undefined' && casePagination && casePagination.cases.length > 0) { %>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-3 border">
+              <thead class="table-light small">
+                <tr>
+                  <th>Case Number</th>
+                  <th>Title / Parties</th>
+                  <th>Status</th>
+                  <th>Jurisdiction</th>
+                  <th>Relevance</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody class="small">
+                <% casePagination.cases.forEach(function(c) { %>
+                  <tr>
+                    <td>
+                      <span class="fw-bold text-dark"><%= c.case_number %></span>
+                      <div>
+                        <span class="badge bg-secondary" style="font-size: 0.65rem;">SYNTHETIC JIS CASE</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="fw-semibold text-dark text-truncate" style="max-width: 220px;"><%= c.title %></div>
+                      <small class="text-muted"><%= c.case_type %> &bull; Filed: <%= new Date(c.filing_date).toLocaleDateString('en-IN') %></small>
+                    </td>
+                    <td>
+                      <span class="badge bg-<%= c.status === 'Closed' ? 'secondary' : c.status === 'In Trial' ? 'warning text-dark' : c.status === 'Judgement Pending' ? 'danger' : 'info text-dark' %>">
+                        <%= c.status %>
+                      </span>
+                    </td>
+                    <td class="text-muted small">
+                      <%= c.high_court_name || 'High Court' %><br>
+                      <span class="text-secondary"><%= c.district_name ? 'Dist: ' + c.district_name : '' %></span>
+                    </td>
+                    <td>
+                      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25"><%= c.relevance_type %></span>
+                    </td>
+                    <td class="text-end">
+                      <% if (c.is_public) { %>
+                        <a href="/case/<%= c.id %>" class="btn btn-sm btn-outline-dark" target="_blank">
+                          <i class="bi bi-eye me-1"></i>View
+                        </a>
+                      <% } else { %>
+                        <span class="badge bg-light text-muted border">Private</span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <% if (casePagination.totalPages > 1) { %>
+            <nav aria-label="Case Pagination">
+              <ul class="pagination pagination-sm justify-content-center mb-0">
+                <li class="page-item <%= casePagination.page <= 1 ? 'disabled' : '' %>">
+                  <a class="page-link" href="?page=<%= casePagination.page - 1 %>">Previous</a>
+                </li>
+                <li class="page-item disabled">
+                  <span class="page-link text-dark">
+                    Page <%= casePagination.page %> of <%= casePagination.totalPages %> (<%= casePagination.total.toLocaleString('en-IN') %> Cases)
+                  </span>
+                </li>
+                <li class="page-item <%= casePagination.page >= casePagination.totalPages ? 'disabled' : '' %>">
+                  <a class="page-link" href="?page=<%= casePagination.page + 1 %>">Next</a>
+                </li>
+              </ul>
+            </nav>
+          <% } %>
+
+        <% } else { %>
+          <div class="text-center text-muted py-4 small">
+            <i class="bi bi-folder-x fs-3 d-block mb-2 text-secondary"></i>
+            No JIS cases currently linked to this statutory section.
+          </div>
+        <% } %>
+      </div>
+
+    </div>
+
+
+    <!-- Right Column: Old ↔ New Mappings & Procedural Schedules -->
+    <div class="col-lg-4">
+
+      <!-- Old ↔ New Law Cross-Reference Card -->
+      <div class="card border-0 shadow-sm p-3 mb-4 bg-white border-start border-4 border-warning">
+        <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+          <i class="bi bi-arrow-left-right text-warning"></i>Criminal Law Cross-Reference
+        </h6>
+
+        <% if (relations.forward.length === 0 && relations.backward.length === 0) { %>
+          <p class="small text-muted mb-0">No direct single equivalent section mapped.</p>
+        <% } else { %>
+
+          <!-- Forward Relations (Old -> New) -->
+          <% if (relations.forward.length > 0) { %>
+            <div class="mb-3">
+              <span class="small text-muted fw-semibold text-uppercase d-block mb-2">Equivalent In 2023 Sanhita:</span>
+              <% relations.forward.forEach(function(rel) { %>
+                <div class="p-2 border rounded bg-light mb-2">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="badge bg-success small"><%= rel.target_act_title %></span>
+                    <span class="badge bg-warning text-dark small"><%= rel.relation_type %></span>
+                  </div>
+                  <div class="fw-bold mb-1">
+                    <a href="/legal/sections/<%= rel.target_section_id %>" class="text-decoration-none text-primary">
+                      Section <%= rel.target_section_number %>: <%= rel.target_section_title %>
+                    </a>
+                  </div>
+                  <% if (rel.notes) { %>
+                    <p class="small text-secondary mb-0"><em>Note:</em> <%= rel.notes %></p>
+                  <% } %>
+                </div>
+              <% }); %>
+            </div>
+          <% } %>
+
+          <!-- Backward Relations (New -> Old) -->
+          <% if (relations.backward.length > 0) { %>
+            <div>
+              <span class="small text-muted fw-semibold text-uppercase d-block mb-2">Corresponding Historical Provision:</span>
+              <% relations.backward.forEach(function(rel) { %>
+                <div class="p-2 border rounded bg-light mb-2">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="badge bg-secondary small"><%= rel.source_act_title %></span>
+                    <span class="badge bg-info text-dark small"><%= rel.relation_type %></span>
+                  </div>
+                  <div class="fw-bold mb-1">
+                    <a href="/legal/sections/<%= rel.source_section_id %>" class="text-decoration-none text-primary">
+                      Section <%= rel.source_section_number %>: <%= rel.source_section_title %>
+                    </a>
+                  </div>
+                  <% if (rel.notes) { %>
+                    <p class="small text-secondary mb-0"><em>Note:</em> <%= rel.notes %></p>
+                  <% } %>
+                </div>
+              <% }); %>
+            </div>
+          <% } %>
+
+        <% } %>
+
+        <div class="text-center mt-2 pt-2 border-top">
+          <a href="/legal/mapping" class="small text-decoration-none text-primary fw-semibold">
+            View Complete Transition Matrix &rarr;
+          </a>
+        </div>
+      </div>
+
+      <!-- Procedural Classification Card -->
+      <% if (procedural) { %>
+        <div class="card border-0 shadow-sm p-3 mb-4 bg-white">
+          <h6 class="fw-bold text-dark mb-3">
+            <i class="bi bi-table me-2 text-primary"></i>First Schedule Classification
+          </h6>
+          <table class="table table-sm table-borderless small mb-0">
+            <tr>
+              <th class="text-muted" style="width: 45%;">Cognizability:</th>
+              <td>
+                <span class="badge <%= procedural.cognizable === 'Cognizable' ? 'bg-danger' : 'bg-secondary' %>">
+                  <%= procedural.cognizable %>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <th class="text-muted">Bailability:</th>
+              <td>
+                <span class="badge <%= procedural.bailable === 'Bailable' ? 'bg-success' : 'bg-danger' %>">
+                  <%= procedural.bailable %>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <th class="text-muted">Compoundable:</th>
+              <td>
+                <span class="badge bg-light text-dark border"><%= procedural.compoundable %></span>
+              </td>
+            </tr>
+            <tr>
+              <th class="text-muted">Court Competent:</th>
+              <td class="fw-semibold text-dark"><%= procedural.court_competent %></td>
+            </tr>
+            <tr>
+              <th class="text-muted">Punishment:</th>
+              <td class="text-dark"><%= procedural.punishment_summary %></td>
+            </tr>
+          </table>
+        </div>
+      <% } %>
+
+      <!-- Legal Categories Card -->
+      <div class="card border-0 shadow-sm p-3 mb-4 bg-white">
+        <h6 class="fw-bold text-dark mb-2">
+          <i class="bi bi-tags me-2 text-success"></i>Subject Taxonomy
+        </h6>
+        <% if (categories.length === 0) { %>
+          <p class="small text-muted mb-0">No subject tags linked.</p>
+        <% } else { %>
+          <div class="d-flex flex-wrap gap-1">
+            <% categories.forEach(function(cat) { %>
+              <a href="/legal/categories/<%= cat.id %>" class="badge bg-light text-dark border text-decoration-none p-2">
+                <%= cat.name %> (<%= cat.domain %>)
+              </a>
+            <% }); %>
+          </div>
+        <% } %>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<%- include('../partials/footer') %>

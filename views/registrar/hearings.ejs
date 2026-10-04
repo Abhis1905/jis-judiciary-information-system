@@ -1,0 +1,198 @@
+<%- include('../partials/header', { title: 'Hearing Management – JIS' }) %>
+
+<div class="container py-4">
+
+  <!-- Breadcrumb & Header -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/registrar/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item active">Hearing Management (R4)</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="mb-0 fw-bold">
+        <i class="bi bi-calendar3 me-2 text-primary"></i>Hearing Management
+      </h4>
+      <p class="text-muted mb-0 small">
+        DFD: REGISTRAR &rarr; JIS: Hearing Requests | JIS &rarr; REGISTRAR: Scheduling Confirmation
+      </p>
+    </div>
+    <a href="/registrar/cases" class="btn btn-outline-dark btn-sm">
+      <i class="bi bi-folder2-open me-1"></i>All Cases
+    </a>
+  </div>
+
+  <div class="row g-4 mb-4">
+
+    <!-- Section A: Schedule a Hearing Form -->
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-dark text-white py-3">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-calendar-plus fs-5 me-2"></i>
+            <div>
+              <h5 class="mb-0 fw-bold fs-6">Schedule New Hearing</h5>
+              <small class="text-secondary">Section A &ndash; Scheduling Form</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body p-4">
+          <form action="/registrar/hearings" method="POST" id="scheduleHearingForm">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+
+            <!-- Case Selection -->
+            <div class="mb-3">
+              <label for="case_id" class="form-label fw-semibold">
+                Select Case <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="case_id" name="case_id" required>
+                <option value="" disabled <%= !selectedCaseId ? 'selected' : '' %>>-- Select Case --</option>
+                <% cases.forEach(c => { %>
+                  <option value="<%= c.id %>" <%= selectedCaseId === c.id ? 'selected' : '' %>>
+                    <%= c.case_number %> &ndash; <%= c.title %> (<%= c.case_type %>)
+                  </option>
+                <% }) %>
+              </select>
+            </div>
+
+            <!-- Hearing Date & Time -->
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label for="hearing_date" class="form-label fw-semibold">
+                  Date <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="date"
+                  class="form-control"
+                  id="hearing_date"
+                  name="hearing_date"
+                  value="<%= todayStr %>"
+                  min="<%= todayStr %>"
+                  required
+                >
+              </div>
+              <div class="col-6">
+                <label for="hearing_time" class="form-label fw-semibold">
+                  Time <span class="text-danger">*</span>
+                </label>
+                <input
+                  type="time"
+                  class="form-control"
+                  id="hearing_time"
+                  name="hearing_time"
+                  value="10:30"
+                  required
+                >
+              </div>
+            </div>
+
+            <!-- Court Room & Hearing Type -->
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label for="court_room" class="form-label fw-semibold">Court Room</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="court_room"
+                  name="court_room"
+                  placeholder="e.g. Court Room 1"
+                >
+              </div>
+              <div class="col-6">
+                <label for="hearing_type" class="form-label fw-semibold">
+                  Hearing Type <span class="text-danger">*</span>
+                </label>
+                <select class="form-select" id="hearing_type" name="hearing_type" required>
+                  <option value="First Hearing">First Hearing</option>
+                  <option value="Interim" selected>Interim</option>
+                  <option value="Final">Final</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Notification Dispatch Note -->
+            <div class="alert alert-light border small text-muted mb-4">
+              <i class="bi bi-bell-fill text-warning me-1"></i>
+              <strong>Automatic Notifications:</strong>
+              Scheduling this hearing will automatically generate in-app alerts for the assigned Judge, linked Prosecutor, and linked Advocate.
+            </div>
+
+            <button type="submit" class="btn btn-dark w-100 py-2">
+              <i class="bi bi-calendar-check me-1"></i>Confirm & Schedule Hearing
+            </button>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section B: Hearings Schedule & Confirmations -->
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-clock-history text-primary fs-5 me-2"></i>
+            <div>
+              <div>Hearings & Scheduling Confirmations</div>
+              <small class="text-muted fw-normal">Section B &ndash; Registered Hearings</small>
+            </div>
+          </div>
+          <span class="badge bg-secondary"><%= hearings.length %> Total</span>
+        </div>
+
+        <div class="card-body p-0">
+          <% if (hearings.length > 0) { %>
+            <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light sticky-top">
+                  <tr>
+                    <th>Case</th>
+                    <th>Date & Time</th>
+                    <th>Court Room</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% hearings.forEach(h => { %>
+                  <tr>
+                    <td>
+                      <a href="/registrar/cases/<%= h.case_id %>" class="text-decoration-none fw-medium">
+                        <%= h.case_title %>
+                      </a>
+                      <div class="text-muted small font-monospace"><%= h.case_number %></div>
+                    </td>
+                    <td>
+                      <div class="fw-semibold"><%= new Date(h.hearing_date).toLocaleDateString('en-IN') %></div>
+                      <div class="text-muted small"><%= h.hearing_time.slice(0,5) %></div>
+                    </td>
+                    <td><%= h.court_room || '—' %></td>
+                    <td><span class="badge bg-secondary"><%= h.hearing_type %></span></td>
+                    <td>
+                      <span class="badge bg-<%= h.status === 'Scheduled' ? 'success' : h.status === 'Completed' ? 'dark' : 'warning text-dark' %>">
+                        <%= h.status %>
+                      </span>
+                    </td>
+                  </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div class="text-center text-muted py-5">
+              <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+              No hearings scheduled yet.
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<%- include('../partials/footer') %>

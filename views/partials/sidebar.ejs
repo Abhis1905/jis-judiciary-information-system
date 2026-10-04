@@ -1,0 +1,240 @@
+<% if (user) { %>
+<div class="jis-sidebar-backdrop" id="jisSidebarBackdrop" aria-hidden="true"></div>
+
+<aside class="jis-sidebar" id="jisSidebar" aria-label="Primary Staff Navigation">
+  <!-- Mobile Header inside Drawer -->
+  <div class="d-flex d-lg-none align-items-center justify-content-between px-3 py-3 border-bottom">
+    <div class="d-flex align-items-center gap-2">
+      <span class="jis-brand-emblem"><i class="bi bi-bank2"></i></span>
+      <div>
+        <div class="jis-brand-title">JIS Portal</div>
+        <span class="jis-brand-subtitle text-capitalize"><%= user.role %> Workspace</span>
+      </div>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-secondary" id="jisSidebarCloseBtn" aria-label="Close navigation menu">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <!-- Role-Specific Primary Navigation -->
+  <div class="jis-sidebar-section">
+    <div class="jis-sidebar-heading"><%= user.role %> Navigation</div>
+    <ul class="jis-nav-list">
+      <% if (user.role === 'registrar') { %>
+        <li>
+          <a class="jis-nav-link" href="/registrar/dashboard" data-nav-path="/registrar/dashboard">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-grid-1x2"></i>
+              <span>Dashboard</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="jis-nav-link" href="/registrar/cases" data-nav-path="/registrar/cases">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-folder2-open"></i>
+              <span>Cases</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="jis-nav-link" href="/registrar/hearings" data-nav-path="/registrar/hearings">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-calendar3"></i>
+              <span>Hearings</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="jis-nav-link" href="/notifications" data-nav-path="/notifications">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-bell"></i>
+              <span>Notifications</span>
+            </span>
+            <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+              <span class="jis-badge jis-badge-danger"><%= unreadCount %></span>
+            <% } %>
+          </a>
+        </li>
+
+      <% } else if (user.role === 'judge') { %>
+        <li>
+          <a class="jis-nav-link" href="/judge/dashboard" data-nav-path="/judge/dashboard">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-grid-1x2"></i>
+              <span>Dashboard</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="jis-nav-link" href="/judge/cases" data-nav-path="/judge/cases">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-briefcase"></i>
+              <span>My Cases</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="jis-nav-link" href="/judge/precedents" data-nav-path="/judge/precedents">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-journal-bookmark"></i>
+              <span>Precedents</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="jis-nav-link" href="/notifications" data-nav-path="/notifications">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-bell"></i>
+              <span>Notifications</span>
+            </span>
+            <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+              <span class="jis-badge jis-badge-danger"><%= unreadCount %></span>
+            <% } %>
+          </a>
+        </li>
+
+      <% } else if (user.role === 'prosecutor') { %>
+        <li>
+          <a class="jis-nav-link" href="/prosecutor/dashboard" data-nav-path="/prosecutor/dashboard">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-grid-1x2"></i>
+              <span>Dashboard</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="jis-nav-link" href="/prosecutor/cases" data-nav-path="/prosecutor/cases">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-briefcase"></i>
+              <span>My Cases</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="jis-nav-link" href="/notifications" data-nav-path="/notifications">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-bell"></i>
+              <span>Notifications</span>
+            </span>
+            <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+              <span class="jis-badge jis-badge-danger"><%= unreadCount %></span>
+            <% } %>
+          </a>
+        </li>
+
+      <% } else if (user.role === 'advocate') { %>
+        <li>
+          <a class="jis-nav-link" href="/advocate/dashboard" data-nav-path="/advocate/dashboard">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-grid-1x2"></i>
+              <span>Dashboard</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="jis-nav-link" href="/advocate/cases" data-nav-path="/advocate/cases">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-briefcase"></i>
+              <span>My Cases</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="jis-nav-link" href="/advocate/causelist" data-nav-path="/advocate/causelist">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-list-ol"></i>
+              <span>Cause List</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="jis-nav-link" href="/notifications" data-nav-path="/notifications">
+            <span class="jis-nav-link-inner">
+              <i class="bi bi-bell"></i>
+              <span>Notifications</span>
+            </span>
+            <% if (typeof unreadCount !== 'undefined' && unreadCount > 0) { %>
+              <span class="jis-badge jis-badge-danger"><%= unreadCount %></span>
+            <% } %>
+          </a>
+        </li>
+      <% } %>
+    </ul>
+
+    <% if (user.role === 'registrar') { %>
+      <div class="mt-3 px-1">
+        <a href="/registrar/cases/new" class="btn btn-primary btn-sm w-100 d-flex align-items-center justify-content-center gap-2">
+          <i class="bi bi-plus-lg"></i>
+          <span>File New Case</span>
+        </a>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Legal Knowledge Reference Section -->
+  <div class="jis-sidebar-section border-top mt-2 pt-3">
+    <div class="jis-sidebar-heading">Legal Repository</div>
+    <ul class="jis-nav-list">
+      <li>
+        <a class="jis-nav-link" href="/legal" data-nav-path="/legal" data-nav-exact="true">
+          <span class="jis-nav-link-inner">
+            <i class="bi bi-compass"></i>
+            <span>Repository Overview</span>
+          </span>
+        </a>
+      </li>
+      <li>
+        <a class="jis-nav-link" href="/legal/acts" data-nav-path="/legal/acts">
+          <span class="jis-nav-link-inner">
+            <i class="bi bi-book"></i>
+            <span>Acts &amp; Codes</span>
+          </span>
+        </a>
+      </li>
+      <li>
+        <a class="jis-nav-link" href="/legal/mapping" data-nav-path="/legal/mapping">
+          <span class="jis-nav-link-inner">
+            <i class="bi bi-arrow-left-right"></i>
+            <span>IPC/CrPC &harr; BNS/BNSS</span>
+          </span>
+        </a>
+      </li>
+      <li>
+        <a class="jis-nav-link" href="/legal/judgments/supreme-court" data-nav-path="/legal/judgments">
+          <span class="jis-nav-link-inner">
+            <i class="bi bi-award"></i>
+            <span>Landmark Judgments</span>
+          </span>
+        </a>
+      </li>
+      <li>
+        <a class="jis-nav-link" href="/legal/search" data-nav-path="/legal/search">
+          <span class="jis-nav-link-inner">
+            <i class="bi bi-search"></i>
+            <span>Legal Search</span>
+          </span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Logged-in Staff Profile Footer -->
+  <div class="jis-sidebar-footer">
+    <div class="d-flex align-items-center justify-content-between gap-2">
+      <div class="text-truncate">
+        <div class="fw-semibold text-dark small text-truncate"><%= user.full_name %></div>
+        <div class="jis-meta text-truncate" style="font-size: 0.75rem;"><%= user.email %></div>
+      </div>
+      <span class="jis-badge jis-badge-navy text-capitalize"><%= user.role %></span>
+    </div>
+    <form action="/logout" method="POST" class="mt-2">
+      <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+      <button type="submit" class="btn btn-outline-secondary btn-sm w-100 d-flex align-items-center justify-content-center gap-1">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Sign Out</span>
+      </button>
+    </form>
+  </div>
+</aside>
+<% } %>

@@ -1,0 +1,94 @@
+<%- include('../partials/header', { title: 'Cause List – JIS' }) %>
+
+<div class="container py-4">
+
+  <!-- Breadcrumb & Header -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/advocate/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item active">Cause List (A3)</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="mb-0 fw-bold">
+        <i class="bi bi-list-ol me-2 text-primary"></i>Advocate Cause List
+      </h4>
+      <p class="text-muted mb-0 small">
+        DFD: JIS &rarr; ADVOCATE (Cause Lists) | Upcoming hearing schedules for your represented cases
+      </p>
+    </div>
+    <a href="/advocate/cases" class="btn btn-outline-dark btn-sm">
+      <i class="bi bi-briefcase me-1"></i>My Cases
+    </a>
+  </div>
+
+  <!-- Cause List Table Card -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div>
+        <i class="bi bi-calendar-week text-primary me-2"></i>Upcoming Court Hearings (Next 30 Days)
+      </div>
+      <span class="badge bg-secondary"><%= upcomingHearings.length %> Scheduled Hearing(s)</span>
+    </div>
+
+    <div class="card-body p-0">
+      <% if (upcomingHearings.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Case</th>
+                <th>Hearing Date & Time</th>
+                <th>Court Room</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% upcomingHearings.forEach(h => { %>
+              <tr>
+                <td>
+                  <a href="/advocate/cases/<%= h.case_id %>" class="text-decoration-none fw-medium">
+                    <%= h.case_title %>
+                  </a>
+                  <div class="text-muted small font-monospace"><%= h.case_number %></div>
+                </td>
+                <td>
+                  <div class="fw-semibold text-dark"><%= new Date(h.hearing_date).toLocaleDateString('en-IN') %></div>
+                  <div class="text-muted small"><%= h.hearing_time.slice(0, 5) %></div>
+                </td>
+                <td><%= h.court_room || '—' %></td>
+                <td><span class="badge bg-secondary"><%= h.hearing_type %></span></td>
+                <td>
+                  <span class="badge bg-<%= h.status === 'Scheduled' ? 'success' : h.status === 'Completed' ? 'dark' : 'warning text-dark' %>">
+                    <%= h.status %>
+                  </span>
+                </td>
+                <td class="text-end">
+                  <a href="/advocate/cases/<%= h.case_id %>" class="btn btn-sm btn-dark">
+                    <i class="bi bi-eye me-1"></i>View Case
+                  </a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-calendar-x fs-1 d-block mb-3"></i>
+          No upcoming hearings found on your cause list.
+          <div class="mt-2 small text-secondary">
+            Hearings scheduled by the Registrar for cases you represent will appear here automatically.
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+</div>
+
+<%- include('../partials/footer') %>

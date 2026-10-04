@@ -1,0 +1,297 @@
+<%- include('../partials/header') %>
+<%- include('../partials/legalStyles') %>
+
+<%
+  const f = typeof filters !== 'undefined' && filters
+    ? filters
+    : { court_tier: '', domain: '', year: '', landmark: '', pdf_only: '' };
+  const hasActiveFilters = Boolean(query || f.court_tier || f.domain || f.year || f.landmark || f.pdf_only);
+%>
+
+<div class="jis-legal-scope container py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="/legal" class="text-decoration-none">Legal Knowledge Repository</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Universal Legal Search</li>
+    </ol>
+  </nav>
+
+  <!-- Header -->
+  <div class="card border shadow-sm mb-4 bg-white">
+    <div class="card-body p-4">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+        <div>
+          <h1 class="h3 fw-bold mb-1">
+            <i class="bi bi-search text-primary me-2"></i>Universal Legal Search
+          </h1>
+          <p class="text-muted small mb-0">
+            Search across verified Supreme Court and High Court judgments, statutory sections, and Indian legislative Acts.
+          </p>
+        </div>
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 align-self-start align-self-md-center">
+          <i class="bi bi-patch-check-fill me-1"></i>REAL / VERIFIED Judgments Only
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search + Filter Bar -->
+  <div class="card border shadow-sm p-3 mb-4 bg-white">
+    <form action="/legal/search" method="GET" class="row g-2 align-items-end" role="search" aria-label="Universal Legal Repository Search">
+      <div class="col-md-9">
+        <label for="universal-q" class="form-label small fw-bold text-muted mb-1">Search Term (Case Title, Citation, Case No., Issue, Ratio, Keyword, or Section)</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+          <input
+            id="universal-q"
+            type="text"
+            name="q"
+            value="<%= query %>"
+            class="form-control border-start-0"
+            placeholder="e.g. 'Puttaswamy', '(2017) 10 SCC 1', 'Article 21', '302', 'Anticipatory Bail', 'Electoral Bonds'..."
+          >
+        </div>
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary w-100 fw-semibold">Search Repository</button>
+        <% if (hasActiveFilters) { %>
+          <a href="/legal/search" class="btn btn-outline-secondary">Reset</a>
+        <% } %>
+      </div>
+
+      <div class="col-sm-6 col-md-3 mt-2">
+        <label for="filter-court" class="form-label small fw-bold text-muted mb-1">Court Tier</label>
+        <select id="filter-court" name="court_tier" class="form-select form-select-sm">
+          <option value="">All Verified Courts</option>
+          <option value="Supreme Court of India" <%= f.court_tier === 'Supreme Court of India' ? 'selected' : '' %>>Supreme Court of India</option>
+          <option value="High Court" <%= f.court_tier === 'High Court' ? 'selected' : '' %>>High Courts</option>
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-md-3 mt-2">
+        <label for="filter-domain" class="form-label small fw-bold text-muted mb-1">Legal Category / Domain</label>
+        <select id="filter-domain" name="domain" class="form-select form-select-sm">
+          <option value="">All Legal Categories</option>
+          <% if (typeof domains !== 'undefined' && domains) { %>
+            <% domains.forEach(function(d) { %>
+              <option value="<%= d %>" <%= f.domain === d ? 'selected' : '' %>><%= d %></option>
+            <% }); %>
+          <% } %>
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-md-2 mt-2">
+        <label for="filter-year" class="form-label small fw-bold text-muted mb-1">Year</label>
+        <select id="filter-year" name="year" class="form-select form-select-sm">
+          <option value="">All Years</option>
+          <% if (typeof years !== 'undefined' && years) { %>
+            <% years.forEach(function(yr) { %>
+              <option value="<%= yr %>" <%= f.year == yr ? 'selected' : '' %>><%= yr %></option>
+            <% }); %>
+          <% } %>
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-md-2 mt-2">
+        <label for="filter-landmark" class="form-label small fw-bold text-muted mb-1">Precedent Scope</label>
+        <select id="filter-landmark" name="landmark" class="form-select form-select-sm">
+          <option value="">All Verified Judgments</option>
+          <option value="1" <%= f.landmark === '1' ? 'selected' : '' %>>Landmark Rulings Only</option>
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-md-2 mt-2">
+        <label for="filter-pdf" class="form-label small fw-bold text-muted mb-1">PDF Availability</label>
+        <select id="filter-pdf" name="pdf_only" class="form-select form-select-sm">
+          <option value="">All Records</option>
+          <option value="1" <%= f.pdf_only === '1' ? 'selected' : '' %>>Verified PDF Available</option>
+        </select>
+      </div>
+    </form>
+  </div>
+
+  <% if (results) { %>
+    <!-- Search Summary Bar -->
+    <div class="card border shadow-sm p-3 mb-4 bg-light">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <h2 class="h6 fw-bold text-dark mb-1">
+            <% if (query) { %>
+              Search Results for "<span class="text-primary"><%= query %></span>"
+            <% } else { %>
+              Filtered Verified Repository Results
+            <% } %>
+          </h2>
+          <div class="d-flex flex-wrap gap-1 align-items-center small text-muted">
+            <% if (f.court_tier) { %><span class="badge bg-white text-dark border">Court: <%= f.court_tier %></span><% } %>
+            <% if (f.domain) { %><span class="badge bg-white text-dark border">Category: <%= f.domain %></span><% } %>
+            <% if (f.year) { %><span class="badge bg-white text-dark border">Year: <%= f.year %></span><% } %>
+            <% if (f.landmark === '1') { %><span class="badge bg-white text-dark border">Landmark Only</span><% } %>
+            <% if (f.pdf_only === '1') { %><span class="badge bg-success-subtle text-success border border-success-subtle">Verified PDF Only</span><% } %>
+          </div>
+        </div>
+        <div class="small text-secondary fw-medium">
+          Found <strong><%= results.totalJudgments || results.judgments.length %></strong> verified judgment(s),
+          <strong><%= results.sections.length %></strong> statutory section(s),
+          <strong><%= results.acts.length %></strong> act(s)
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Tabs -->
+    <ul class="nav nav-tabs mb-4" id="searchTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-semibold" id="judgments-tab" data-bs-toggle="tab" data-bs-target="#judgments" type="button" role="tab" aria-controls="judgments" aria-selected="true">
+          <i class="bi bi-award me-1"></i>Verified Judgments (<%= results.totalJudgments || results.judgments.length %>)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="sections-tab" data-bs-toggle="tab" data-bs-target="#sections" type="button" role="tab" aria-controls="sections" aria-selected="false">
+          <i class="bi bi-file-earmark-text me-1"></i>Statutory Sections (<%= results.sections.length %>)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="acts-tab" data-bs-toggle="tab" data-bs-target="#acts" type="button" role="tab" aria-controls="acts" aria-selected="false">
+          <i class="bi bi-book me-1"></i>Acts &amp; Codes (<%= results.acts.length %>)
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="searchTabsContent">
+
+      <!-- Judgments Tab -->
+      <div class="tab-pane fade show active" id="judgments" role="tabpanel" aria-labelledby="judgments-tab">
+        <% if (results.judgments.length === 0) { %>
+          <div class="card border shadow-sm p-5 text-muted text-center bg-white">
+            <i class="bi bi-journal-x fs-1 mb-2 text-secondary"></i>
+            <h3 class="h5 text-dark">No verified judgments matched your criteria</h3>
+            <p class="small mb-3">Try broadening your query or resetting active court/year/PDF filters.</p>
+            <div>
+              <a href="/legal/search" class="btn btn-sm btn-outline-primary fw-semibold">Reset Search</a>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="row g-4 mb-4">
+            <% results.judgments.forEach(function(j) { %>
+              <div class="col-lg-6">
+                <%- include('../partials/judgmentCard', { j }) %>
+              </div>
+            <% }); %>
+          </div>
+
+          <% if (results.totalPages > 1) { %>
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 pt-2">
+              <div class="small text-muted">
+                Showing page <strong><%= results.page %></strong> of <strong><%= results.totalPages %></strong> (<%= results.totalJudgments %> verified judgments)
+              </div>
+              <nav aria-label="Search pagination">
+                <ul class="pagination mb-0">
+                  <li class="page-item <%= results.page <= 1 ? 'disabled' : '' %>">
+                    <a class="page-link" href="?q=<%= encodeURIComponent(query) %>&court_tier=<%= encodeURIComponent(f.court_tier) %>&domain=<%= encodeURIComponent(f.domain) %>&year=<%= encodeURIComponent(f.year) %>&landmark=<%= encodeURIComponent(f.landmark) %>&pdf_only=<%= encodeURIComponent(f.pdf_only || '') %>&page=<%= results.page - 1 %>">Previous</a>
+                  </li>
+                  <% for (let p = Math.max(1, results.page - 2); p <= Math.min(results.totalPages, results.page + 2); p++) { %>
+                    <li class="page-item <%= p === results.page ? 'active' : '' %>">
+                      <a class="page-link" href="?q=<%= encodeURIComponent(query) %>&court_tier=<%= encodeURIComponent(f.court_tier) %>&domain=<%= encodeURIComponent(f.domain) %>&year=<%= encodeURIComponent(f.year) %>&landmark=<%= encodeURIComponent(f.landmark) %>&pdf_only=<%= encodeURIComponent(f.pdf_only || '') %>&page=<%= p %>"><%= p %></a>
+                    </li>
+                  <% } %>
+                  <li class="page-item <%= results.page >= results.totalPages ? 'disabled' : '' %>">
+                    <a class="page-link" href="?q=<%= encodeURIComponent(query) %>&court_tier=<%= encodeURIComponent(f.court_tier) %>&domain=<%= encodeURIComponent(f.domain) %>&year=<%= encodeURIComponent(f.year) %>&landmark=<%= encodeURIComponent(f.landmark) %>&pdf_only=<%= encodeURIComponent(f.pdf_only || '') %>&page=<%= results.page + 1 %>">Next</a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          <% } %>
+        <% } %>
+      </div>
+
+      <!-- Sections Tab -->
+      <div class="tab-pane fade" id="sections" role="tabpanel" aria-labelledby="sections-tab">
+        <% if (results.sections.length === 0) { %>
+          <div class="card border shadow-sm p-4 text-muted text-center bg-white">No statutory sections found matching "<%= query %>".</div>
+        <% } else { %>
+          <div class="card border shadow-sm bg-white">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Section</th>
+                    <th>Title</th>
+                    <th>Act</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% results.sections.forEach(function(sec) { %>
+                    <tr>
+                      <td class="fw-bold text-primary">Sec <%= sec.section_number %></td>
+                      <td>
+                        <a href="/legal/sections/<%= sec.id %>" class="text-decoration-none text-dark fw-medium">
+                          <%= sec.section_title %>
+                        </a>
+                      </td>
+                      <td><%= sec.act_short_title %></td>
+                      <td><span class="badge <%= sec.status === 'Active' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary border' %>"><%= sec.status %></span></td>
+                      <td class="text-end">
+                        <a href="/legal/sections/<%= sec.id %>" class="btn btn-sm btn-outline-primary">View Provision</a>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Acts Tab -->
+      <div class="tab-pane fade" id="acts" role="tabpanel" aria-labelledby="acts-tab">
+        <% if (results.acts.length === 0) { %>
+          <div class="card border shadow-sm p-4 text-muted text-center bg-white">No acts found matching "<%= query %>".</div>
+        <% } else { %>
+          <div class="row g-3">
+            <% results.acts.forEach(function(act) { %>
+              <div class="col-md-6">
+                <div class="card h-100 border shadow-sm p-3 bg-white">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge <%= act.status === 'Active' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary border' %>"><%= act.status %></span>
+                    <span class="badge bg-light text-dark border"><%= act.enactment_year %></span>
+                  </div>
+                  <h3 class="h5 fw-bold mb-1">
+                    <a href="/legal/acts/<%= act.id %>" class="text-decoration-none text-dark">
+                      <%= act.short_title %>
+                    </a>
+                  </h3>
+                  <p class="small text-secondary mb-3"><%= act.description %></p>
+                  <a href="/legal/acts/<%= act.id %>" class="btn btn-sm btn-outline-primary mt-auto">Browse Sections &rarr;</a>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        <% } %>
+      </div>
+
+    </div>
+
+  <% } else { %>
+    <div class="card border shadow-sm p-5 text-center bg-white">
+      <i class="bi bi-search fs-1 mb-2 text-primary"></i>
+      <h2 class="h4 fw-bold text-dark">Search the Indian Judiciary Legal Knowledge Repository</h2>
+      <p class="small text-muted mb-3">Enter a case title, citation, statutory section, or select a filter above to explore verified legal authorities.</p>
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        <a href="/legal/search?q=Puttaswamy" class="btn btn-sm btn-light border">Puttaswamy (Privacy)</a>
+        <a href="/legal/search?q=Maneka+Gandhi" class="btn btn-sm btn-light border">Maneka Gandhi (Article 21)</a>
+        <a href="/legal/search?q=Arnesh+Kumar" class="btn btn-sm btn-light border">Arnesh Kumar (Sec 41A Arrest)</a>
+        <a href="/legal/search?q=Lalita+Kumari" class="btn btn-sm btn-light border">Lalita Kumari (FIR Registration)</a>
+        <a href="/legal/search?pdf_only=1" class="btn btn-sm btn-outline-success fw-semibold">
+          <i class="bi bi-file-earmark-pdf-fill me-1"></i>All Judgments with Verified PDF
+        </a>
+      </div>
+    </div>
+  <% } %>
+
+</div>
+
+<%- include('../partials/footer') %>

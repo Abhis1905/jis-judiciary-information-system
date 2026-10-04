@@ -1,0 +1,379 @@
+<%- include('../partials/header', { title: 'JIS – Judiciary Info System' }) %>
+
+<%
+  const pg = typeof pagination !== 'undefined' && pagination ? pagination : {
+    page: 1, limit: 12, totalResults: (results || []).length, totalSearchPages: 1,
+    recordPage: 1, totalPublicRecords: (publicRecords || []).length, totalRecordPages: 1
+  };
+  const isSearchActive = Boolean(query && (query.q || query.caseType || query.status || query.stateUtId || query.highCourtId || query.districtId));
+  const isRecordsTabActive = Boolean(query && (query.recPage || query.year || query.recType || query.verdict)) && !isSearchActive;
+
+  function buildSearchUrl(targetPage) {
+    const params = new URLSearchParams();
+    if (query.q) params.set('q', query.q);
+    if (query.stateUtId) params.set('stateUtId', query.stateUtId);
+    if (query.highCourtId) params.set('highCourtId', query.highCourtId);
+    if (query.districtId) params.set('districtId', query.districtId);
+    if (query.caseType) params.set('caseType', query.caseType);
+    if (query.status) params.set('status', query.status);
+    params.set('page', String(targetPage));
+    return '/search?' + params.toString();
+  }
+
+  function buildRecordsUrl(targetRecPage) {
+    const params = new URLSearchParams();
+    if (query.year) params.set('year', query.year);
+    if (query.recType) params.set('recType', query.recType);
+    if (query.verdict) params.set('verdict', query.verdict);
+    params.set('recPage', String(targetRecPage));
+    return '/search?' + params.toString();
+  }
+%>
+
+<!-- Hero / Search Bar -->
+<div class="bg-dark text-white py-5">
+  <div class="container text-center">
+    <i class="bi bi-bank2 display-5 d-block mb-2"></i>
+    <h1 class="display-6 fw-bold mb-2">Judiciary Info System</h1>
+    <p class="lead text-secondary mb-4" style="font-size: 1.05rem;">
+      Access public case status, court records, judicial notices, and the <a href="/legal" class="text-white text-decoration-underline">Indian Legal Knowledge Repository</a>.
+    </p>
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <form action="/search" method="GET" class="bg-white p-3 p-md-4 rounded-3 shadow text-dark text-start">
+          <div class="input-group mb-3">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input
+              type="text"
+              name="q"
+              class="form-control form-control-lg border-start-0"
+              placeholder="Search by case number, title, petitioner or respondent..."
+              value="<%= query.q || '' %>"
+              aria-label="Search cases"
+            >
+            <button type="submit" class="btn btn-primary btn-lg px-4 fw-semibold">
+              Search Cases
+            </button>
+          </div>
+
+          <div class="row g-2">
+            <div class="col-sm-6 col-md-3">
+              <select name="stateUtId" class="form-select form-select-sm" aria-label="State or Union Territory">
+                <option value="">All States / UTs</option>
+                <% if (typeof states !== 'undefined' && states) { %>
+                  <% states.forEach(function(s) { %>
+                    <option value="<%= s.id %>" <%= query.stateUtId == s.id ? 'selected' : '' %>><%= s.name %></option>
+                  <% }); %>
+                <% } %>
+              </select>
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <select name="highCourtId" class="form-select form-select-sm" aria-label="High Court">
+                <option value="">All High Courts</option>
+                <% if (typeof highCourts !== 'undefined' && highCourts) { %>
+                  <% highCourts.forEach(function(hc) { %>
+                    <option value="<%= hc.id %>" <%= query.highCourtId == hc.id ? 'selected' : '' %>><%= hc.name %></option>
+                  <% }); %>
+                <% } %>
+              </select>
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <select name="caseType" class="form-select form-select-sm" aria-label="Case Type">
+                <option value="">All Case Types</option>
+                <option value="Civil" <%= query.caseType === 'Civil' ? 'selected' : '' %>>Civil</option>
+                <option value="Criminal" <%= query.caseType === 'Criminal' ? 'selected' : '' %>>Criminal</option>
+                <option value="Constitutional" <%= query.caseType === 'Constitutional' ? 'selected' : '' %>>Constitutional</option>
+                <option value="Family" <%= query.caseType === 'Family' ? 'selected' : '' %>>Family</option>
+                <option value="Commercial" <%= query.caseType === 'Commercial' ? 'selected' : '' %>>Commercial</option>
+                <option value="Writ" <%= query.caseType === 'Writ' ? 'selected' : '' %>>Writ</option>
+              </select>
+            </div>
+            <div class="col-sm-6 col-md-3 d-flex gap-2">
+              <select name="status" class="form-select form-select-sm" aria-label="Case Status">
+                <option value="">All Statuses</option>
+                <option value="Filed" <%= query.status === 'Filed' ? 'selected' : '' %>>Filed</option>
+                <option value="Allocated" <%= query.status === 'Allocated' ? 'selected' : '' %>>Allocated</option>
+                <option value="In Trial" <%= query.status === 'In Trial' ? 'selected' : '' %>>In Trial</option>
+                <option value="Judgement Pending" <%= query.status === 'Judgement Pending' ? 'selected' : '' %>>Judgement Pending</option>
+                <option value="Closed" <%= query.status === 'Closed' ? 'selected' : '' %>>Closed</option>
+              </select>
+              <% if (isSearchActive) { %>
+                <a href="/" class="btn btn-sm btn-outline-secondary">Reset</a>
+              <% } %>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Portal Content -->
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <ul class="nav nav-tabs border-bottom-0" id="portalTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link <%= !isRecordsTabActive ? 'active' : '' %> fw-semibold" id="search-tab" data-bs-toggle="tab"
+                data-bs-target="#searchResults" type="button" role="tab">
+          <i class="bi bi-search me-1"></i>Case Search
+          <% if (isSearchActive) { %>
+            <span class="badge bg-primary ms-1"><%= (pg.totalResults || results.length).toLocaleString('en-IN') %></span>
+          <% } %>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link <%= isRecordsTabActive ? 'active' : '' %> fw-semibold" id="records-tab" data-bs-toggle="tab"
+                data-bs-target="#publicRecords" type="button" role="tab">
+          <i class="bi bi-archive me-1"></i>Public Records (<%= (pg.totalPublicRecords || publicRecords.length).toLocaleString('en-IN') %>)
+        </button>
+      </li>
+    </ul>
+
+    <a href="/legal" class="btn btn-sm btn-outline-primary fw-semibold">
+      <i class="bi bi-journal-bookmark-fill me-1"></i>Browse Verified Legal Repository (105 Judgments) &rarr;
+    </a>
+  </div>
+
+  <div class="tab-content">
+
+    <!-- Tab A: Case Search Results (Clean Result Cards + Pagination) -->
+    <div class="tab-pane fade <%= !isRecordsTabActive ? 'show active' : '' %>" id="searchResults" role="tabpanel">
+      <% if (results.length > 0) { %>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <p class="text-muted small mb-0">
+            <i class="bi bi-check-circle-fill me-1 text-success"></i>
+            Found <strong><%= (pg.totalResults || results.length).toLocaleString('en-IN') %></strong> matching public case(s)
+            &mdash; showing page <strong><%= pg.page %></strong> of <strong><%= pg.totalSearchPages %></strong>
+          </p>
+          <span class="badge bg-secondary-subtle text-secondary border small">
+            Public Docket View
+          </span>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <% results.forEach(c => { %>
+            <div class="col-lg-6">
+              <article class="card jis-case-result-card h-100 border shadow-sm">
+                <div class="card-body p-4 d-flex flex-column">
+                  <!-- Top Row: Case Number, Type & Status -->
+                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <code class="fw-bold text-primary bg-light px-2 py-1 rounded border"><%= c.case_number %></code>
+                      <span class="badge bg-light text-dark border"><%= c.case_type %></span>
+                    </div>
+                    <span class="badge bg-<%= c.status === 'Closed' ? 'secondary' : c.status === 'In Trial' ? 'warning text-dark' : c.status === 'Judgement Pending' ? 'danger' : 'info text-dark' %>">
+                      <%= c.status %>
+                    </span>
+                  </div>
+
+                  <!-- Case Title -->
+                  <h5 class="fw-bold text-dark mb-2">
+                    <a href="/case/<%= c.id %>" class="text-decoration-none text-dark hover-primary">
+                      <%= c.title %>
+                    </a>
+                  </h5>
+
+                  <!-- Petitioner -> Respondent -->
+                  <div class="small bg-light p-2 rounded border mb-3">
+                    <span class="fw-semibold text-dark"><%= c.petitioner_name %></span>
+                    <span class="text-muted mx-1">&rarr;</span>
+                    <span class="fw-semibold text-dark"><%= c.respondent_name %></span>
+                  </div>
+
+                  <!-- Court & Dates Metadata -->
+                  <div class="row g-2 small text-muted mb-3">
+                    <div class="col-12">
+                      <i class="bi bi-bank me-1 text-primary"></i>
+                      <strong class="text-dark">Court:</strong>
+                      <% if (c.subordinate_court_name) { %>
+                        <%= c.subordinate_court_name %><%= c.district_name ? ', ' + c.district_name : '' %><%= c.state_name ? ' (' + c.state_name + ')' : '' %>
+                      <% } else if (c.high_court_name) { %>
+                        <%= c.high_court_name %><%= c.bench_name ? ' — ' + c.bench_name : '' %><%= c.district_name ? ' (' + c.district_name + ')' : '' %>
+                      <% } else { %>
+                        <%= c.court_level_name || 'General Jurisdiction' %>
+                      <% } %>
+                    </div>
+                    <div class="col-sm-6">
+                      <i class="bi bi-calendar3 me-1"></i>
+                      <strong class="text-dark">Filing Date:</strong>
+                      <%= c.filing_date ? new Date(c.filing_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—' %>
+                    </div>
+                    <div class="col-sm-6">
+                      <i class="bi bi-calendar-event me-1"></i>
+                      <strong class="text-dark">Next Hearing:</strong>
+                      <%= c.next_hearing_date ? new Date(c.next_hearing_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not Scheduled' %>
+                    </div>
+                  </div>
+
+                  <!-- Short Case Description -->
+                  <% if (c.description) { %>
+                    <p class="small text-secondary mb-3 jis-line-clamp-2">
+                      <%= c.description %>
+                    </p>
+                  <% } %>
+
+                  <!-- Action -->
+                  <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                    <span class="text-muted" style="font-size: 0.75rem;"><%= c.court_level_name || 'Public Case Record' %></span>
+                    <a href="/case/<%= c.id %>" class="btn btn-sm btn-primary px-3 fw-semibold">
+                      View Case &rarr;
+                    </a>
+                  </div>
+                </div>
+              </article>
+            </div>
+          <% }) %>
+        </div>
+
+        <!-- Working Pagination for Case Search -->
+        <% if (pg.totalSearchPages > 1) { %>
+          <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 pt-2">
+            <div class="small text-muted">
+              Page <strong><%= pg.page %></strong> of <strong><%= pg.totalSearchPages %></strong>
+              &middot; Total <strong><%= pg.totalResults.toLocaleString('en-IN') %></strong> matching cases
+            </div>
+            <nav aria-label="Case search pagination">
+              <ul class="pagination mb-0">
+                <li class="page-item <%= pg.page <= 1 ? 'disabled' : '' %>">
+                  <a class="page-link" href="<%= pg.page > 1 ? buildSearchUrl(pg.page - 1) : '#' %>">Previous</a>
+                </li>
+                <% for (let p = Math.max(1, pg.page - 2); p <= Math.min(pg.totalSearchPages, pg.page + 2); p++) { %>
+                  <li class="page-item <%= p === pg.page ? 'active' : '' %>">
+                    <a class="page-link" href="<%= buildSearchUrl(p) %>"><%= p %></a>
+                  </li>
+                <% } %>
+                <li class="page-item <%= pg.page >= pg.totalSearchPages ? 'disabled' : '' %>">
+                  <a class="page-link" href="<%= pg.page < pg.totalSearchPages ? buildSearchUrl(pg.page + 1) : '#' %>">Next</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        <% } %>
+
+      <% } else if (isSearchActive) { %>
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle me-2"></i>
+          No publicly available cases match your search criteria.
+        </div>
+      <% } else { %>
+        <div class="card border shadow-sm p-5 text-center text-muted">
+          <i class="bi bi-search fs-2 d-block mb-2 text-primary"></i>
+          <h5 class="fw-bold text-dark mb-1">Search Public Court Cases</h5>
+          <p class="small mb-3">
+            Enter a case number, party name, or select a State, High Court, Case Type, or Status above to search public case records, or switch to the <strong>Public Records</strong> tab to browse disposed cases.
+          </p>
+          <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <a href="/search?status=In+Trial" class="btn btn-sm btn-outline-primary">Browse Active Trials</a>
+            <a href="/search?caseType=Constitutional" class="btn btn-sm btn-outline-secondary">Constitutional Petitions</a>
+            <a href="/legal" class="btn btn-sm btn-dark">Verified Landmark Judgments</a>
+          </div>
+        </div>
+      <% } %>
+    </div><!-- /searchResults -->
+
+    <!-- Tab B: Public Records – closed cases with judgements (Clean Cards + Pagination) -->
+    <div class="tab-pane fade <%= isRecordsTabActive ? 'show active' : '' %>" id="publicRecords" role="tabpanel">
+      <% if (publicRecords.length > 0) { %>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <p class="text-muted small mb-0">
+            Showing page <strong><%= pg.recordPage %></strong> of <strong><%= pg.totalRecordPages %></strong>
+            (<strong><%= (pg.totalPublicRecords || publicRecords.length).toLocaleString('en-IN') %></strong> disposed public case records)
+          </p>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <% publicRecords.forEach(c => { %>
+            <div class="col-lg-6">
+              <article class="card jis-case-result-card h-100 border shadow-sm">
+                <div class="card-body p-4 d-flex flex-column">
+                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <code class="fw-bold text-primary bg-light px-2 py-1 rounded border"><%= c.case_number %></code>
+                      <span class="badge bg-light text-dark border"><%= c.case_type %></span>
+                    </div>
+                    <span class="badge bg-<%= c.verdict === 'Guilty' ? 'danger' : c.verdict === 'Not Guilty' ? 'success' : 'dark' %>">
+                      Verdict: <%= c.verdict %>
+                    </span>
+                  </div>
+
+                  <h5 class="fw-bold text-dark mb-2">
+                    <a href="/case/<%= c.id %>" class="text-decoration-none text-dark hover-primary">
+                      <%= c.title %>
+                    </a>
+                  </h5>
+
+                  <div class="small bg-light p-2 rounded border mb-3">
+                    <span class="fw-semibold text-dark"><%= c.petitioner_name %></span>
+                    <span class="text-muted mx-1">&rarr;</span>
+                    <span class="fw-semibold text-dark"><%= c.respondent_name %></span>
+                  </div>
+
+                  <div class="row g-2 small text-muted mb-3">
+                    <div class="col-12">
+                      <i class="bi bi-bank me-1 text-primary"></i>
+                      <strong class="text-dark">Court:</strong>
+                      <%= c.high_court_name || c.court_level_name || 'Disposed Court Record' %><%= c.district_name ? ' (' + c.district_name + ')' : '' %>
+                    </div>
+                    <div class="col-sm-6">
+                      <strong class="text-dark">Filing Date:</strong>
+                      <%= c.filing_date ? new Date(c.filing_date).toLocaleDateString('en-IN') : '—' %>
+                    </div>
+                    <div class="col-sm-6">
+                      <strong class="text-dark">Judgment Date:</strong>
+                      <%= c.judgement_date ? new Date(c.judgement_date).toLocaleDateString('en-IN') : '—' %>
+                    </div>
+                  </div>
+
+                  <% if (c.judgement_summary || c.description) { %>
+                    <p class="small text-secondary mb-3 jis-line-clamp-2">
+                      <%= c.judgement_summary || c.description %>
+                    </p>
+                  <% } %>
+
+                  <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                    <span class="badge bg-secondary-subtle text-secondary border">Closed Record</span>
+                    <a href="/case/<%= c.id %>" class="btn btn-sm btn-outline-dark px-3 fw-semibold">
+                      View Case &rarr;
+                    </a>
+                  </div>
+                </div>
+              </article>
+            </div>
+          <% }) %>
+        </div>
+
+        <% if (pg.totalRecordPages > 1) { %>
+          <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 pt-2">
+            <div class="small text-muted">
+              Page <strong><%= pg.recordPage %></strong> of <strong><%= pg.totalRecordPages %></strong>
+              &middot; Total <strong><%= pg.totalPublicRecords.toLocaleString('en-IN') %></strong> closed records
+            </div>
+            <nav aria-label="Public records pagination">
+              <ul class="pagination mb-0">
+                <li class="page-item <%= pg.recordPage <= 1 ? 'disabled' : '' %>">
+                  <a class="page-link" href="<%= pg.recordPage > 1 ? buildRecordsUrl(pg.recordPage - 1) : '#' %>">Previous</a>
+                </li>
+                <% for (let p = Math.max(1, pg.recordPage - 2); p <= Math.min(pg.totalRecordPages, pg.recordPage + 2); p++) { %>
+                  <li class="page-item <%= p === pg.recordPage ? 'active' : '' %>">
+                    <a class="page-link" href="<%= buildRecordsUrl(p) %>"><%= p %></a>
+                  </li>
+                <% } %>
+                <li class="page-item <%= pg.recordPage >= pg.totalRecordPages ? 'disabled' : '' %>">
+                  <a class="page-link" href="<%= pg.recordPage < pg.totalRecordPages ? buildRecordsUrl(pg.recordPage + 1) : '#' %>">Next</a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        <% } %>
+      <% } else { %>
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-archive fs-2 d-block mb-2"></i>
+          No closed public records available yet.
+        </div>
+      <% } %>
+    </div><!-- /publicRecords -->
+
+  </div><!-- /tab-content -->
+</div>
+
+<%- include('../partials/footer') %>

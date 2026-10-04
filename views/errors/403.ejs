@@ -1,0 +1,17 @@
+<%- include('../partials/header', { title: 'Access Denied – JIS' }) %>
+
+<div class="container py-5 text-center">
+  <i class="bi bi-shield-x display-1 text-warning mb-3 d-block"></i>
+  <h2 class="fw-bold">403 – Access Denied</h2>
+  <p class="text-muted mb-4">
+    <%= typeof message !== 'undefined' ? message : 'You do not have permission to access this page.' %>
+  </p>
+  <a href="javascript:history.back()" class="btn btn-outline-secondary me-2">
+    <i class="bi bi-arrow-left me-1"></i>Go Back
+  </a>
+  <a href="/" class="btn btn-dark">
+    <i class="bi bi-house me-1"></i>Go Home
+  </a>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,441 @@
+<%- include('../partials/header', { title: `Case ${caseRecord.case_number} – JIS` }) %>
+
+<div class="container py-4">
+
+  <!-- Breadcrumb & Navigation -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/judge/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="/judge/cases">My Cases</a></li>
+      <li class="breadcrumb-item active"><%= caseRecord.case_number %> (J2)</li>
+    </ol>
+  </nav>
+
+  <!-- Case Header Banner -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-dark text-white py-3">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <span class="badge bg-secondary mb-1"><%= caseRecord.case_type %></span>
+          <h4 class="mb-0 fw-bold"><%= caseRecord.title %></h4>
+          <span class="font-monospace small text-light opacity-75"><%= caseRecord.case_number %></span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <%
+            let statusClass = 'bg-secondary';
+            if (caseRecord.status === 'Filed') statusClass = 'bg-info text-dark';
+            else if (caseRecord.status === 'Allocated') statusClass = 'bg-primary';
+            else if (caseRecord.status === 'In Trial') statusClass = 'bg-warning text-dark';
+            else if (caseRecord.status === 'Judgement Pending') statusClass = 'bg-danger';
+            else if (caseRecord.status === 'Closed') statusClass = 'bg-dark';
+          %>
+          <span class="badge <%= statusClass %> fs-6"><%= caseRecord.status %></span>
+          <% if (caseRecord.is_public) { %>
+            <span class="badge bg-success-subtle text-success border border-success-subtle fs-6">
+              <i class="bi bi-globe me-1"></i>Public
+            </span>
+          <% } else { %>
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-6">
+              <i class="bi bi-lock me-1"></i>Private
+            </span>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Case Metadata -->
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Petitioner</p>
+          <p class="fw-semibold text-dark mb-0"><%= caseRecord.petitioner_name %></p>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Respondent</p>
+          <p class="fw-semibold text-dark mb-0"><%= caseRecord.respondent_name %></p>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Filing Date</p>
+          <p class="fw-semibold text-dark mb-0"><%= new Date(caseRecord.filing_date).toLocaleDateString('en-IN') %></p>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Assigned Judge</p>
+          <p class="fw-semibold text-dark mb-0"><i class="bi bi-person-badge text-primary me-1"></i><%= user.full_name %></p>
+        </div>
+        <% if (caseRecord.description) { %>
+        <div class="col-12 mt-3 pt-3 border-top">
+          <p class="mb-1 text-muted small">Case Description / Claims</p>
+          <p class="text-secondary mb-0"><%= caseRecord.description %></p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real Indian Judiciary Hierarchy & Appellate Route -->
+  <%- include('../partials/jurisdictionInfo') %>
+
+  <!-- Real Indian Legal Intelligence & Applicable Provisions -->
+  <%- include('../partials/caseLegalPanel') %>
+
+  <!-- Statutory Appellate Progression & History -->
+  <%- include('../partials/appealHistory') %>
+
+  <div class="row g-4 mb-4">
+
+    <!-- Section A: Case Status Management (Trial Lifecycle) -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white fw-bold py-3 border-bottom d-flex align-items-center">
+          <i class="bi bi-arrow-repeat text-primary fs-5 me-2"></i>
+          <div>
+            <div>Case Status Management</div>
+            <small class="text-muted fw-normal">DFD: JUDGE &rarr; JIS (Trial Updates)</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <span class="text-muted small">Current Case Status:</span>
+            <div class="mt-1">
+              <span class="badge <%= statusClass %> fs-6 px-3 py-2"><%= caseRecord.status %></span>
+            </div>
+          </div>
+
+          <% if (caseRecord.status !== 'Closed') { %>
+          <form action="/judge/cases/<%= caseRecord.id %>/status" method="POST">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+            <label for="status" class="form-label fw-semibold small">Update Trial Stage <span class="text-danger">*</span></label>
+            <div class="input-group mb-3">
+              <select class="form-select" id="status" name="status" required>
+                <option value="" disabled selected>-- Select Status --</option>
+                <option value="In Trial" <%= caseRecord.status === 'In Trial' ? 'selected' : '' %>>In Trial (Active Proceedings)</option>
+                <option value="Judgement Pending" <%= caseRecord.status === 'Judgement Pending' ? 'selected' : '' %>>Judgement Pending (Hearings Concluded)</option>
+              </select>
+              <button type="submit" class="btn btn-dark">
+                <i class="bi bi-check2 me-1"></i>Update Status
+              </button>
+            </div>
+            <div class="form-text small text-muted">
+              <i class="bi bi-info-circle me-1"></i>
+              Moving status to <code>Judgement Pending</code> enables the Final Judgement issuance form below.
+            </div>
+          </form>
+          <% } else { %>
+          <div class="alert alert-dark mb-0 py-2">
+            <i class="bi bi-lock-fill me-1"></i>
+            This case is <strong>Closed</strong>. The final judgement has been issued.
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Representation & Counsel -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white fw-bold py-3 border-bottom d-flex align-items-center">
+          <i class="bi bi-people text-primary fs-5 me-2"></i>
+          <div>
+            <div>Counsel & Prosecution</div>
+            <small class="text-muted fw-normal">Participating Legal Representatives</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <p class="mb-1 text-muted small">Public Prosecutor</p>
+            <% if (caseRecord.prosecutor_name) { %>
+              <div class="p-2 bg-light rounded border fw-medium">
+                <i class="bi bi-briefcase me-2 text-primary"></i><%= caseRecord.prosecutor_name %>
+              </div>
+            <% } else { %>
+              <div class="p-2 bg-light rounded border text-muted small">No Prosecutor linked to this case.</div>
+            <% } %>
+          </div>
+
+          <div>
+            <p class="mb-1 text-muted small">Advocate / Defence Counsel</p>
+            <% if (caseRecord.advocate_name) { %>
+              <div class="p-2 bg-light rounded border fw-medium">
+                <i class="bi bi-person-lines-fill me-2 text-primary"></i><%= caseRecord.advocate_name %>
+              </div>
+            <% } else { %>
+              <div class="p-2 bg-light rounded border text-muted small">No Advocate linked (pending Vakalatnama).</div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Section B: E-Documents & Case Files -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-file-earmark-medical text-primary fs-5 me-2"></i>
+        <div>
+          <div>E-Documents & Case Filings</div>
+          <small class="text-muted fw-normal">DFD: JIS &rarr; JUDGE (Case Updates & Documents)</small>
+        </div>
+      </div>
+      <span class="badge bg-secondary"><%= documents.length %> Document(s)</span>
+    </div>
+
+    <div class="card-body p-0">
+      <% if (documents.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Document Type</th>
+                <th>Original File Name</th>
+                <th>Description</th>
+                <th>Uploaded Date</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% documents.forEach(doc => { %>
+              <tr>
+                <td><span class="badge bg-secondary"><%= doc.document_type %></span></td>
+                <td class="fw-medium">
+                  <i class="bi bi-file-earmark-text text-primary me-1"></i>
+                  <%= doc.original_name %>
+                </td>
+                <td class="text-muted small"><%= doc.description || '—' %></td>
+                <td class="text-muted small"><%= new Date(doc.created_at).toLocaleDateString('en-IN') %></td>
+                <td class="text-end">
+                  <a href="/documents/document/<%= doc.id %>" target="_blank" class="btn btn-sm btn-outline-dark">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>View / Download
+                  </a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-files fs-2 d-block mb-2"></i>
+          No E-Documents uploaded for this case.
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Section C: Trial Notes -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-journal-text text-primary fs-5 me-2"></i>
+        <div>
+          <div>Trial Notes & Judicial Observations</div>
+          <small class="text-muted fw-normal">DFD: JUDGE &rarr; JIS: Trial Updates | JIS &rarr; JUDGE: Trial Notes</small>
+        </div>
+      </div>
+      <span class="badge bg-secondary"><%= trialNotes.length %> Note(s)</span>
+    </div>
+
+    <div class="card-body">
+      <!-- Add Trial Note Form (only if case not closed) -->
+      <% if (caseRecord.status !== 'Closed') { %>
+      <form action="/judge/cases/<%= caseRecord.id %>/notes" method="POST" class="p-3 bg-light rounded border mb-4">
+        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+        <label for="note_content" class="form-label fw-semibold small">
+          <i class="bi bi-pencil-square me-1"></i>Record New Trial Note / Proceeding Summary <span class="text-danger">*</span>
+        </label>
+        <textarea
+          class="form-control mb-3"
+          id="note_content"
+          name="note_content"
+          rows="3"
+          placeholder="Record notes on witness examination, evidence admitted, counsel arguments, or procedural directions..."
+          required
+        ></textarea>
+        <div class="text-end">
+          <button type="submit" class="btn btn-dark btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Add Trial Note
+          </button>
+        </div>
+      </form>
+      <% } %>
+
+      <!-- Trial Notes Timeline/List -->
+      <% if (trialNotes.length > 0) { %>
+        <div class="d-flex flex-column gap-3">
+          <% trialNotes.forEach(note => { %>
+          <div class="p-3 bg-white border rounded shadow-xs">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <span class="fw-semibold text-dark small">
+                <i class="bi bi-person-badge text-primary me-1"></i><%= note.judge_name %>
+              </span>
+              <span class="text-muted small">
+                <i class="bi bi-clock me-1"></i><%= new Date(note.created_at).toLocaleString('en-IN') %>
+              </span>
+            </div>
+            <p class="mb-0 text-secondary" style="white-space: pre-wrap;"><%= note.note_content %></p>
+          </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-journal-x fs-2 d-block mb-2"></i>
+          No trial notes recorded for this case yet.
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Section D: Hearing Schedule -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-calendar3 text-primary fs-5 me-2"></i>
+        <div>
+          <div>Scheduled & Past Hearings</div>
+          <small class="text-muted fw-normal">Court hearing schedule for this case</small>
+        </div>
+      </div>
+      <span class="badge bg-secondary"><%= hearings.length %> Hearing(s)</span>
+    </div>
+
+    <div class="card-body p-0">
+      <% if (hearings.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Hearing Date</th>
+                <th>Time</th>
+                <th>Court Room</th>
+                <th>Hearing Type</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% hearings.forEach(h => { %>
+              <tr>
+                <td class="fw-semibold"><%= new Date(h.hearing_date).toLocaleDateString('en-IN') %></td>
+                <td><%= h.hearing_time.slice(0, 5) %></td>
+                <td><%= h.court_room || '—' %></td>
+                <td><span class="badge bg-secondary"><%= h.hearing_type %></span></td>
+                <td>
+                  <span class="badge bg-<%= h.status === 'Scheduled' ? 'success' : h.status === 'Completed' ? 'dark' : 'warning text-dark' %>">
+                    <%= h.status %>
+                  </span>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+          No hearings recorded for this case yet.
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Section E: Final Judgement -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-dark text-white fw-bold py-3 d-flex align-items-center">
+      <i class="bi bi-gavel fs-5 me-2"></i>
+      <div>
+        <div>Final Judgement & Disposition</div>
+        <small class="text-secondary">DFD: JIS &rarr; JUDGE (Final Judgements)</small>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <% if (judgement) { %>
+        <!-- Existing Issued Judgement -->
+        <div class="p-4 bg-light rounded border">
+          <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+            <div>
+              <span class="text-muted small d-block">Judicial Verdict</span>
+              <%
+                let verdictBadge = 'bg-secondary';
+                if (judgement.verdict === 'Guilty') verdictBadge = 'bg-danger';
+                else if (judgement.verdict === 'Not Guilty') verdictBadge = 'bg-success';
+                else if (judgement.verdict === 'Dismissed') verdictBadge = 'bg-warning text-dark';
+                else if (judgement.verdict === 'Settled') verdictBadge = 'bg-info text-dark';
+              %>
+              <span class="badge <%= verdictBadge %> fs-5 mt-1"><%= judgement.verdict %></span>
+            </div>
+            <div class="text-end">
+              <span class="text-muted small d-block">Date of Pronouncement</span>
+              <span class="fw-semibold text-dark"><%= new Date(judgement.judgement_date).toLocaleDateString('en-IN') %></span>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <h6 class="fw-bold small text-muted text-uppercase mb-1">Judgement Summary</h6>
+            <p class="text-dark mb-0" style="white-space: pre-wrap;"><%= judgement.summary %></p>
+          </div>
+
+          <% if (judgement.pdf_path) { %>
+          <div class="pt-3 border-top">
+            <a href="/documents/judgement/<%= judgement.id %>" class="btn btn-dark btn-sm" target="_blank">
+              <i class="bi bi-file-earmark-pdf me-1"></i>Download Judgement PDF (<%= judgement.pdf_name || 'Judgement.pdf' %>)
+            </a>
+          </div>
+          <% } %>
+        </div>
+
+      <% } else if (caseRecord.status === 'Judgement Pending') { %>
+        <!-- Upload Final Judgement Form -->
+        <form action="/judge/cases/<%= caseRecord.id %>/judgement?_csrf=<%= encodeURIComponent(typeof csrfToken !== 'undefined' ? csrfToken : '') %>" method="POST" enctype="multipart/form-data" class="p-3 bg-light rounded border">
+          <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+          <h6 class="fw-bold mb-3 text-danger"><i class="bi bi-gavel me-2"></i>Pronounce Final Judgement & Close Case</h6>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label for="verdict" class="form-label fw-semibold small">Verdict <span class="text-danger">*</span></label>
+              <select class="form-select" id="verdict" name="verdict" required>
+                <option value="" disabled selected>-- Select Verdict --</option>
+                <option value="Guilty">Guilty</option>
+                <option value="Not Guilty">Not Guilty</option>
+                <option value="Dismissed">Dismissed</option>
+                <option value="Settled">Settled</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label for="judgement_date" class="form-label fw-semibold small">Judgement Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="judgement_date" name="judgement_date" value="<%= todayStr %>" required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="summary" class="form-label fw-semibold small">Judgement Summary / Findings <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="summary" name="summary" rows="4" placeholder="Detailed reasoning, findings of facts, operative orders, and final decree..." required></textarea>
+          </div>
+
+          <div class="mb-4">
+            <label for="judgement_pdf" class="form-label fw-semibold small">Upload Signed Judgement Copy (PDF only)</label>
+            <input class="form-control" type="file" id="judgement_pdf" name="judgement_pdf" accept="application/pdf">
+            <div class="form-text small">Accepted format: PDF only (Max 20MB)</div>
+          </div>
+
+          <button type="submit" class="btn btn-danger px-4" onclick="return confirm('Are you sure you want to pronounce final judgement? This will permanently mark the case as Closed.');">
+            <i class="bi bi-check2-circle me-1"></i>Pronounce Judgement & Close Case
+          </button>
+        </form>
+
+      <% } else { %>
+        <!-- Prompt to advance case to Judgement Pending first -->
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-hourglass-top fs-2 d-block mb-2"></i>
+          Final Judgement can be issued once hearings conclude and the case status is set to <code>Judgement Pending</code>.
+          <div class="mt-2 small">Use the <strong>Case Status Management</strong> card above to advance the case stage.</div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+</div>
+
+<%- include('../partials/footer') %>

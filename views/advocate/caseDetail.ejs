@@ -1,0 +1,560 @@
+<%- include('../partials/header', { title: `Case ${caseRecord.case_number} – JIS` }) %>
+
+<div class="container py-4">
+
+  <!-- Breadcrumb & Back -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/advocate/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="/advocate/cases">My Cases</a></li>
+      <li class="breadcrumb-item active"><%= caseRecord.case_number %> (A2)</li>
+    </ol>
+  </nav>
+
+  <!-- Case Header Banner -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-dark text-white py-3">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <span class="badge bg-secondary mb-1"><%= caseRecord.case_type %></span>
+          <h4 class="mb-0 fw-bold"><%= caseRecord.title %></h4>
+          <span class="font-monospace small text-light opacity-75"><%= caseRecord.case_number %></span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <%
+            let statusClass = 'bg-secondary';
+            if (caseRecord.status === 'Filed') statusClass = 'bg-info text-dark';
+            else if (caseRecord.status === 'Allocated') statusClass = 'bg-primary';
+            else if (caseRecord.status === 'In Trial') statusClass = 'bg-warning text-dark';
+            else if (caseRecord.status === 'Judgement Pending') statusClass = 'bg-danger';
+            else if (caseRecord.status === 'Closed') statusClass = 'bg-dark';
+          %>
+          <span class="badge <%= statusClass %> fs-6"><%= caseRecord.status %></span>
+          <% if (isLinked) { %>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6">
+              <i class="bi bi-shield-check me-1"></i>Represented by You
+            </span>
+          <% } else { %>
+            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fs-6">
+              <i class="bi bi-exclamation-circle me-1"></i>Vakalatnama Required
+            </span>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Metadata Details -->
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Petitioner</p>
+          <p class="fw-semibold text-dark mb-0"><%= caseRecord.petitioner_name %></p>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Respondent</p>
+          <p class="fw-semibold text-dark mb-0"><%= caseRecord.respondent_name %></p>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Filing Date</p>
+          <p class="fw-semibold text-dark mb-0"><%= new Date(caseRecord.filing_date).toLocaleDateString('en-IN') %></p>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Presiding Judge</p>
+          <p class="fw-semibold text-dark mb-0">
+            <% if (caseRecord.judge_name) { %>
+              <i class="bi bi-person-badge text-primary me-1"></i><%= caseRecord.judge_name %>
+            <% } else { %>
+              <span class="text-muted font-normal">Pending Allocation</span>
+            <% } %>
+          </p>
+        </div>
+        <% if (caseRecord.description) { %>
+        <div class="col-12 mt-3 pt-3 border-top">
+          <p class="mb-1 text-muted small">Case Description / Claims</p>
+          <p class="text-secondary mb-0"><%= caseRecord.description %></p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real Indian Judiciary Hierarchy & Appellate Route -->
+  <%- include('../partials/jurisdictionInfo') %>
+
+  <!-- Real Indian Legal Intelligence & Applicable Provisions -->
+  <%- include('../partials/caseLegalPanel') %>
+
+  <!-- Statutory Appellate Progression & History -->
+  <%- include('../partials/appealHistory') %>
+
+  <!-- Section B: Vakalatnama Filing & Counsel Link -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-file-earmark-person text-primary fs-5 me-2"></i>
+        <div>
+          <div>Vakalatnama & Counsel Representation</div>
+          <small class="text-muted fw-normal">DFD: ADVOCATE &rarr; JIS (Vakalatnama)</small>
+        </div>
+      </div>
+      <% if (isLinked) { %>
+        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Vakalatnama on File</span>
+      <% } else { %>
+        <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>Unlinked</span>
+      <% } %>
+    </div>
+
+    <div class="card-body">
+      <% if (isLinked && vakalatnama) { %>
+        <!-- Existing Vakalatnama Details -->
+        <div class="p-3 bg-light rounded border d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <div class="fw-bold text-dark">
+              <i class="bi bi-check2-circle text-success me-1"></i>
+              Representing Client: <strong><%= vakalatnama.client_name %></strong>
+            </div>
+            <div class="text-muted small mt-1">
+              File: <i class="bi bi-file-earmark-text me-1"></i><%= vakalatnama.original_name %> &bull;
+              Filed on: <%= new Date(vakalatnama.created_at).toLocaleDateString('en-IN') %>
+            </div>
+          </div>
+          <a href="/documents/vakalatnama/<%= vakalatnama.id %>" target="_blank" class="btn btn-outline-dark btn-sm">
+            <i class="bi bi-box-arrow-up-right me-1"></i>View Vakalatnama
+          </a>
+        </div>
+
+      <% } else { %>
+        <!-- Upload Vakalatnama Form to Link Case -->
+        <div class="alert alert-warning-subtle border border-warning-subtle mb-4">
+          <i class="bi bi-info-circle text-warning-emphasis me-2"></i>
+          <strong>Link Required:</strong> Upload a signed Vakalatnama to formally enter appearance as counsel and unlock E-Filings, Pleadings, and Scheduling Requests.
+        </div>
+
+        <form action="/advocate/cases/<%= caseRecord.id %>/vakalatnama?_csrf=<%= encodeURIComponent(typeof csrfToken !== 'undefined' ? csrfToken : '') %>" method="POST" enctype="multipart/form-data" class="p-3 bg-light rounded border">
+          <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+          <div class="row g-3">
+            <div class="col-md-5">
+              <label for="client_name" class="form-label fw-semibold small">Client Name (Petitioner/Respondent) <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="client_name" name="client_name" placeholder="e.g. <%= caseRecord.petitioner_name %>" required>
+            </div>
+            <div class="col-md-5">
+              <label for="vakalatnama" class="form-label fw-semibold small">Signed Vakalatnama File <span class="text-danger">*</span></label>
+              <input class="form-control" type="file" id="vakalatnama" name="vakalatnama" accept=".pdf,.docx,.jpg,.jpeg,.png" required>
+              <div class="form-text small">Accepted: PDF, DOCX, JPG, PNG (Max 10MB)</div>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-link-45deg me-1"></i>Link Case
+              </button>
+            </div>
+          </div>
+        </form>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Section A: Case History & E-Documents -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-file-earmark-medical text-primary fs-5 me-2"></i>
+        <div>
+          <div>Case History & E-Documents</div>
+          <small class="text-muted fw-normal">DFD: JIS &rarr; ADVOCATE (Case History & Documents)</small>
+        </div>
+      </div>
+      <span class="badge bg-secondary"><%= documents.length %> Document(s)</span>
+    </div>
+
+    <div class="card-body p-0">
+      <% if (documents.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Document Type</th>
+                <th>File Name</th>
+                <th>Description</th>
+                <th>Uploaded Date</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% documents.forEach(doc => { %>
+              <tr>
+                <td><span class="badge bg-secondary"><%= doc.document_type %></span></td>
+                <td class="fw-medium"><i class="bi bi-file-earmark-text text-primary me-1"></i><%= doc.original_name %></td>
+                <td class="text-muted small"><%= doc.description || '—' %></td>
+                <td class="text-muted small"><%= new Date(doc.created_at).toLocaleDateString('en-IN') %></td>
+                <td class="text-end">
+                  <a href="/documents/document/<%= doc.id %>" target="_blank" class="btn btn-sm btn-outline-dark">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>View
+                  </a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-files fs-2 d-block mb-2"></i>No E-Documents uploaded by Registrar yet.
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Section: Hearing History & Schedule -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-calendar3 text-primary fs-5 me-2"></i>
+        <div>
+          <div>Court Hearings Schedule</div>
+          <small class="text-muted fw-normal">DFD: JIS &rarr; ADVOCATE (Notices & Schedule)</small>
+        </div>
+      </div>
+      <span class="badge bg-secondary"><%= hearings.length %> Hearing(s)</span>
+    </div>
+
+    <div class="card-body p-0">
+      <% if (hearings.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Court Room</th>
+                <th>Hearing Type</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% hearings.forEach(h => { %>
+              <tr>
+                <td class="fw-semibold"><%= new Date(h.hearing_date).toLocaleDateString('en-IN') %></td>
+                <td><%= h.hearing_time.slice(0, 5) %></td>
+                <td><%= h.court_room || '—' %></td>
+                <td><span class="badge bg-secondary"><%= h.hearing_type %></span></td>
+                <td>
+                  <span class="badge bg-<%= h.status === 'Scheduled' ? 'success' : h.status === 'Completed' ? 'dark' : 'warning text-dark' %>">
+                    <%= h.status %>
+                  </span>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>No hearings scheduled for this case yet.
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (isLinked) { %>
+
+  <!-- Section C: E-Filings -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-file-earmark-arrow-up text-primary fs-5 me-2"></i>
+        <div>
+          <div>Electronic Filings (E-Filings)</div>
+          <small class="text-muted fw-normal">DFD: ADVOCATE &rarr; JIS (E-Filings)</small>
+        </div>
+      </div>
+      <span class="badge bg-secondary"><%= efilings.length %> Filing(s)</span>
+    </div>
+
+    <div class="card-body">
+      <!-- Upload E-Filing Form -->
+      <form action="/advocate/cases/<%= caseRecord.id %>/efilings?_csrf=<%= encodeURIComponent(typeof csrfToken !== 'undefined' ? csrfToken : '') %>" method="POST" enctype="multipart/form-data" class="p-3 bg-light rounded border mb-4">
+        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+        <h6 class="fw-bold mb-3"><i class="bi bi-plus-circle me-1"></i>Submit New E-Filing</h6>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label for="filing_type" class="form-label fw-semibold small">Filing Type <span class="text-danger">*</span></label>
+            <select class="form-select" id="filing_type" name="filing_type" required>
+              <option value="" disabled selected>-- Select Type --</option>
+              <option value="Application">Application (Interlocutory / Interim)</option>
+              <option value="Petition">Petition / Memorandum</option>
+              <option value="Reply">Reply / Rejoinder</option>
+              <option value="Other">Other Filing</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="efiling" class="form-label fw-semibold small">Filing Document <span class="text-danger">*</span></label>
+            <input class="form-control" type="file" id="efiling" name="efiling" accept=".pdf,.docx,.jpg,.jpeg,.png" required>
+            <div class="form-text small">Accepted: PDF, DOCX, JPG, PNG (Max 10MB)</div>
+          </div>
+          <div class="col-md-3">
+            <label for="efiling_desc" class="form-label fw-semibold small">Description</label>
+            <input type="text" class="form-control" id="efiling_desc" name="description" placeholder="e.g. Interim relief application">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-dark w-100"><i class="bi bi-upload me-1"></i>Submit</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- E-Filings List -->
+      <% if (efilings.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Filing Type</th>
+                <th>File Name</th>
+                <th>Description</th>
+                <th>Submitted Date</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% efilings.forEach(ef => { %>
+              <tr>
+                <td><span class="badge bg-secondary"><%= ef.filing_type %></span></td>
+                <td class="fw-medium"><i class="bi bi-file-earmark-text text-primary me-1"></i><%= ef.original_name %></td>
+                <td class="text-muted small"><%= ef.description || '—' %></td>
+                <td class="text-muted small"><%= new Date(ef.created_at).toLocaleDateString('en-IN') %></td>
+                <td class="text-end">
+                  <a href="/documents/efiling/<%= ef.id %>" target="_blank" class="btn btn-sm btn-outline-dark">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>View
+                  </a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-folder2-open fs-2 d-block mb-2"></i>No E-Filings submitted for this case yet.
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Section D: Pleadings -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-file-text text-primary fs-5 me-2"></i>
+        <div>
+          <div>Formal Pleadings</div>
+          <small class="text-muted fw-normal">DFD: ADVOCATE &rarr; JIS (Pleadings)</small>
+        </div>
+      </div>
+      <span class="badge bg-secondary"><%= pleadings.length %> Pleading(s)</span>
+    </div>
+
+    <div class="card-body">
+      <!-- Upload Pleading Form -->
+      <form action="/advocate/cases/<%= caseRecord.id %>/pleadings?_csrf=<%= encodeURIComponent(typeof csrfToken !== 'undefined' ? csrfToken : '') %>" method="POST" enctype="multipart/form-data" class="p-3 bg-light rounded border mb-4">
+        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+        <h6 class="fw-bold mb-3"><i class="bi bi-plus-circle me-1"></i>File New Pleading</h6>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label for="pleading_type" class="form-label fw-semibold small">Pleading Type <span class="text-danger">*</span></label>
+            <select class="form-select" id="pleading_type" name="pleading_type" required>
+              <option value="" disabled selected>-- Select Type --</option>
+              <option value="Written Statement">Written Statement (Defence)</option>
+              <option value="Counter-Claim">Counter-Claim</option>
+              <option value="Rejoinder">Rejoinder / Replication</option>
+              <option value="Other">Other Pleading</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="pleading" class="form-label fw-semibold small">Pleading Document <span class="text-danger">*</span></label>
+            <input class="form-control" type="file" id="pleading" name="pleading" accept=".pdf,.docx,.jpg,.jpeg,.png" required>
+            <div class="form-text small">Accepted: PDF, DOCX, JPG, PNG (Max 10MB)</div>
+          </div>
+          <div class="col-md-3">
+            <label for="pleading_desc" class="form-label fw-semibold small">Description</label>
+            <input type="text" class="form-control" id="pleading_desc" name="description" placeholder="e.g. Defendant written statement">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-dark w-100"><i class="bi bi-upload me-1"></i>File</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Pleadings List -->
+      <% if (pleadings.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Pleading Type</th>
+                <th>File Name</th>
+                <th>Description</th>
+                <th>Filed Date</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% pleadings.forEach(pl => { %>
+              <tr>
+                <td><span class="badge bg-secondary"><%= pl.pleading_type %></span></td>
+                <td class="fw-medium"><i class="bi bi-file-earmark-text text-primary me-1"></i><%= pl.original_name %></td>
+                <td class="text-muted small"><%= pl.description || '—' %></td>
+                <td class="text-muted small"><%= new Date(pl.created_at).toLocaleDateString('en-IN') %></td>
+                <td class="text-end">
+                  <a href="/documents/pleading/<%= pl.id %>" target="_blank" class="btn btn-sm btn-outline-dark">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>View
+                  </a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-file-text fs-2 d-block mb-2"></i>No formal pleadings filed yet.
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Section E: Court Orders & Final Judgement -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-bank text-primary fs-5 me-2"></i>
+        <div>
+          <div>Court Orders & Final Judgement</div>
+          <small class="text-muted fw-normal">DFD: JIS &rarr; ADVOCATE (Court Orders)</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <!-- Court Orders -->
+      <% if (courtOrders.length > 0) { %>
+        <div class="table-responsive mb-3">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr><th>Order Date</th><th>Summary</th><th>Issued By</th></tr>
+            </thead>
+            <tbody>
+              <% courtOrders.forEach(co => { %>
+              <tr>
+                <td class="fw-semibold"><%= new Date(co.order_date).toLocaleDateString('en-IN') %></td>
+                <td><%= co.order_summary %></td>
+                <td class="small text-muted"><%= co.judge_name %></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i>No interim court orders recorded for this case.</p>
+      <% } %>
+
+      <!-- Judgement (if Closed) -->
+      <% if (judgement) { %>
+        <div class="p-3 bg-light rounded border mt-3">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <span class="text-muted small d-block">Final Judgement Verdict</span>
+              <span class="badge bg-dark fs-6 mt-1"><%= judgement.verdict %></span>
+            </div>
+            <span class="text-muted small"><%= new Date(judgement.judgement_date).toLocaleDateString('en-IN') %></span>
+          </div>
+          <p class="text-dark small mb-0"><%= judgement.summary %></p>
+          <% if (judgement.pdf_path) { %>
+            <div class="pt-2 mt-2 border-top">
+              <a href="/documents/judgement/<%= judgement.id %>" class="btn btn-dark btn-sm" target="_blank">
+                <i class="bi bi-file-earmark-pdf me-1"></i>Download Judgement PDF
+              </a>
+            </div>
+          <% } %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Section F: Hearing Scheduling Requests -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-calendar-event text-primary fs-5 me-2"></i>
+        <div>
+          <div>Hearing Scheduling Requests</div>
+          <small class="text-muted fw-normal">DFD: ADVOCATE &rarr; JIS (Scheduling Requests)</small>
+        </div>
+      </div>
+      <span class="badge bg-secondary"><%= schedulingRequests.length %> Request(s)</span>
+    </div>
+
+    <div class="card-body">
+      <!-- Request Form -->
+      <form action="/advocate/cases/<%= caseRecord.id %>/scheduling-requests" method="POST" class="p-3 bg-light rounded border mb-4">
+        <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+        <h6 class="fw-bold mb-3"><i class="bi bi-clock-history me-1"></i>Request Hearing Schedule Date</h6>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="requested_date" class="form-label fw-semibold small">Preferred Hearing Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="requested_date" name="requested_date" value="<%= todayStr %>" min="<%= todayStr %>" required>
+          </div>
+          <div class="col-md-6">
+            <label for="reason" class="form-label fw-semibold small">Reason / Justification <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="reason" name="reason" placeholder="e.g. Witness availability, urgent interim stay hearing" required>
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-dark w-100"><i class="bi bi-send me-1"></i>Submit</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Requests List -->
+      <% if (schedulingRequests.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Requested Date</th>
+                <th>Reason</th>
+                <th>Submitted On</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% schedulingRequests.forEach(sr => { %>
+              <tr>
+                <td class="fw-semibold text-primary"><%= new Date(sr.requested_date).toLocaleDateString('en-IN') %></td>
+                <td><%= sr.reason %></td>
+                <td class="text-muted small"><%= new Date(sr.created_at).toLocaleString('en-IN') %></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>No scheduling requests submitted for this case.
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <% } else { %>
+  <!-- Lock Notice for Sections C–F -->
+  <div class="card border-0 shadow-sm text-center py-5 bg-light">
+    <div class="card-body">
+      <i class="bi bi-lock-fill display-5 text-muted mb-3 d-block"></i>
+      <h5 class="fw-bold">Advocate Filings & Scheduling Locked</h5>
+      <p class="text-muted small mb-0">
+        Please upload a signed <strong>Vakalatnama</strong> in Section B above to enter appearance as counsel and unlock E-Filings, Pleadings, and Hearing Scheduling Requests.
+      </p>
+    </div>
+  </div>
+  <% } %>
+
+</div>
+
+<%- include('../partials/footer') %>

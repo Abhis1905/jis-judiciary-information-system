@@ -1,0 +1,358 @@
+<%- include('../partials/header', { title: `Case ${caseRecord.case_number} – JIS` }) %>
+
+<div class="container py-4">
+
+  <!-- Breadcrumb & Back -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/prosecutor/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="/prosecutor/cases">My Cases</a></li>
+      <li class="breadcrumb-item active"><%= caseRecord.case_number %> (P2)</li>
+    </ol>
+  </nav>
+
+  <!-- Case Header Banner -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-dark text-white py-3">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <span class="badge bg-secondary mb-1"><%= caseRecord.case_type %></span>
+          <h4 class="mb-0 fw-bold"><%= caseRecord.title %></h4>
+          <span class="font-monospace small text-light opacity-75"><%= caseRecord.case_number %></span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <%
+            let statusClass = 'bg-secondary';
+            if (caseRecord.status === 'Filed') statusClass = 'bg-info text-dark';
+            else if (caseRecord.status === 'Allocated') statusClass = 'bg-primary';
+            else if (caseRecord.status === 'In Trial') statusClass = 'bg-warning text-dark';
+            else if (caseRecord.status === 'Judgement Pending') statusClass = 'bg-danger';
+            else if (caseRecord.status === 'Closed') statusClass = 'bg-dark';
+          %>
+          <span class="badge <%= statusClass %> fs-6"><%= caseRecord.status %></span>
+          <% if (caseRecord.is_public) { %>
+            <span class="badge bg-success-subtle text-success border border-success-subtle fs-6">
+              <i class="bi bi-globe me-1"></i>Public
+            </span>
+          <% } else { %>
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fs-6">
+              <i class="bi bi-lock me-1"></i>Private
+            </span>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Case Metadata -->
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Petitioner</p>
+          <p class="fw-semibold text-dark mb-0"><%= caseRecord.petitioner_name %></p>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Respondent</p>
+          <p class="fw-semibold text-dark mb-0"><%= caseRecord.respondent_name %></p>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Filing Date</p>
+          <p class="fw-semibold text-dark mb-0"><%= new Date(caseRecord.filing_date).toLocaleDateString('en-IN') %></p>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <p class="mb-1 text-muted small">Assigned Judge</p>
+          <p class="fw-semibold text-dark mb-0">
+            <% if (caseRecord.judge_name) { %>
+              <i class="bi bi-person-badge text-primary me-1"></i><%= caseRecord.judge_name %>
+            <% } else { %>
+              <span class="text-muted font-normal">Pending Allocation</span>
+            <% } %>
+          </p>
+        </div>
+        <% if (caseRecord.description) { %>
+        <div class="col-12 mt-3 pt-3 border-top">
+          <p class="mb-1 text-muted small">Case Description / Particulars</p>
+          <p class="text-secondary mb-0"><%= caseRecord.description %></p>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Real Indian Judiciary Hierarchy & Appellate Route -->
+  <%- include('../partials/jurisdictionInfo') %>
+
+  <!-- Real Indian Legal Intelligence & Applicable Provisions -->
+  <%- include('../partials/caseLegalPanel') %>
+
+  <!-- Statutory Appellate Progression & History -->
+  <%- include('../partials/appealHistory') %>
+
+  <div class="row g-4 mb-4">
+
+    <!-- Section A: Submit Prosecution Status Update -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white fw-bold py-3 border-bottom d-flex align-items-center">
+          <i class="bi bi-pencil-square text-primary fs-5 me-2"></i>
+          <div>
+            <div>Submit Prosecution Status Update</div>
+            <small class="text-muted fw-normal">DFD: PUBLIC PROSECUTOR &rarr; JIS: Status Updates</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <form action="/prosecutor/cases/<%= caseRecord.id %>/updates" method="POST">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+            <div class="mb-3">
+              <label for="update_description" class="form-label fw-semibold small">
+                Case Status / Trial Progress Note <span class="text-danger">*</span>
+              </label>
+              <textarea
+                class="form-control"
+                id="update_description"
+                name="update_description"
+                rows="4"
+                placeholder="Enter prosecution status, witness availability, submission of charge sheet/evidence, or trial preparedness..."
+                required
+              ></textarea>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>Visible to presiding Judge & Registrar.
+              </small>
+              <button type="submit" class="btn btn-dark btn-sm px-3">
+                <i class="bi bi-send me-1"></i>Submit Update
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Counsel & Prosecution Overview -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white fw-bold py-3 border-bottom d-flex align-items-center">
+          <i class="bi bi-shield-shaded text-primary fs-5 me-2"></i>
+          <div>
+            <div>Representation & Docket Details</div>
+            <small class="text-muted fw-normal">Prosecution & Defence Representation</small>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <p class="mb-1 text-muted small">Allocated Public Prosecutor</p>
+            <div class="p-2 bg-light rounded border fw-medium">
+              <i class="bi bi-briefcase text-primary me-2"></i><%= user.full_name %> (<%= user.email %>)
+            </div>
+          </div>
+
+          <div>
+            <p class="mb-1 text-muted small">Advocate / Defence Counsel</p>
+            <% if (caseRecord.advocate_name) { %>
+              <div class="p-2 bg-light rounded border fw-medium">
+                <i class="bi bi-person-lines-fill text-primary me-2"></i><%= caseRecord.advocate_name %>
+              </div>
+            <% } else { %>
+              <div class="p-2 bg-light rounded border text-muted small">
+                <i class="bi bi-dash-circle me-1"></i>No Advocate linked yet (pending Vakalatnama upload).
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Section B: Status Updates History -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-clock-history text-primary fs-5 me-2"></i>
+        <div>
+          <div>Prosecution Status Updates History</div>
+          <small class="text-muted fw-normal">Recorded updates for this case</small>
+        </div>
+      </div>
+      <span class="badge bg-secondary"><%= statusUpdates.length %> Update(s)</span>
+    </div>
+
+    <div class="card-body">
+      <% if (statusUpdates.length > 0) { %>
+        <div class="d-flex flex-column gap-3">
+          <% statusUpdates.forEach(u => { %>
+          <div class="p-3 bg-light rounded border">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <span class="fw-semibold text-dark small">
+                <i class="bi bi-person-badge text-primary me-1"></i><%= u.prosecutor_name %>
+              </span>
+              <span class="text-muted small">
+                <i class="bi bi-clock me-1"></i><%= new Date(u.created_at).toLocaleString('en-IN') %>
+              </span>
+            </div>
+            <p class="mb-0 text-secondary" style="white-space: pre-wrap;"><%= u.update_description %></p>
+          </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-chat-left-dots fs-2 d-block mb-2"></i>
+          No prosecution status updates recorded yet. Use the form above to record an update.
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Section C: E-Documents Repository -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-file-earmark-medical text-primary fs-5 me-2"></i>
+        <div>
+          <div>E-Documents & Case Files</div>
+          <small class="text-muted fw-normal">DFD: JIS &rarr; PUBLIC PROSECUTOR (Case Information & Documents)</small>
+        </div>
+      </div>
+      <span class="badge bg-secondary"><%= documents.length %> Document(s)</span>
+    </div>
+
+    <div class="card-body p-0">
+      <% if (documents.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Document Type</th>
+                <th>File Name</th>
+                <th>Description</th>
+                <th>Uploaded Date</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% documents.forEach(doc => { %>
+              <tr>
+                <td><span class="badge bg-secondary"><%= doc.document_type %></span></td>
+                <td class="fw-medium">
+                  <i class="bi bi-file-earmark-text text-primary me-1"></i>
+                  <%= doc.original_name %>
+                </td>
+                <td class="text-muted small"><%= doc.description || '—' %></td>
+                <td class="text-muted small"><%= new Date(doc.created_at).toLocaleDateString('en-IN') %></td>
+                <td class="text-end">
+                  <a href="/documents/document/<%= doc.id %>" target="_blank" class="btn btn-sm btn-outline-dark">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>View / Download
+                  </a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-files fs-2 d-block mb-2"></i>
+          No E-Documents uploaded for this case.
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Section D: Hearing Notices & Schedule -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold py-3 border-bottom d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-calendar3 text-primary fs-5 me-2"></i>
+        <div>
+          <div>Hearing Notices & Schedule</div>
+          <small class="text-muted fw-normal">DFD: JIS &rarr; PUBLIC PROSECUTOR (Hearing Notices)</small>
+        </div>
+      </div>
+      <span class="badge bg-secondary"><%= hearings.length %> Hearing(s)</span>
+    </div>
+
+    <div class="card-body p-0">
+      <% if (hearings.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Hearing Date</th>
+                <th>Time</th>
+                <th>Court Room</th>
+                <th>Hearing Type</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% hearings.forEach(h => { %>
+              <tr>
+                <td class="fw-semibold"><%= new Date(h.hearing_date).toLocaleDateString('en-IN') %></td>
+                <td><%= h.hearing_time.slice(0, 5) %></td>
+                <td><%= h.court_room || '—' %></td>
+                <td><span class="badge bg-secondary"><%= h.hearing_type %></span></td>
+                <td>
+                  <span class="badge bg-<%= h.status === 'Scheduled' ? 'success' : h.status === 'Completed' ? 'dark' : 'warning text-dark' %>">
+                    <%= h.status %>
+                  </span>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>
+          No hearings scheduled for this case yet.
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Section E: Final Judgement (if case is closed) -->
+  <% if (judgement) { %>
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-dark text-white fw-bold py-3 d-flex align-items-center">
+      <i class="bi bi-gavel fs-5 me-2"></i>
+      <div>
+        <div>Final Judgement Pronounced</div>
+        <small class="text-secondary">Disposition Summary</small>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+        <div>
+          <span class="text-muted small d-block">Verdict</span>
+          <%
+            let verdictBadge = 'bg-secondary';
+            if (judgement.verdict === 'Guilty') verdictBadge = 'bg-danger';
+            else if (judgement.verdict === 'Not Guilty') verdictBadge = 'bg-success';
+            else if (judgement.verdict === 'Dismissed') verdictBadge = 'bg-warning text-dark';
+            else if (judgement.verdict === 'Settled') verdictBadge = 'bg-info text-dark';
+          %>
+          <span class="badge <%= verdictBadge %> fs-5 mt-1"><%= judgement.verdict %></span>
+        </div>
+        <div class="text-end">
+          <span class="text-muted small d-block">Judgement Date</span>
+          <span class="fw-semibold text-dark"><%= new Date(judgement.judgement_date).toLocaleDateString('en-IN') %></span>
+        </div>
+      </div>
+      <div class="mb-3">
+        <h6 class="fw-bold small text-muted text-uppercase mb-1">Judgement Summary</h6>
+        <p class="text-dark mb-0"><%= judgement.summary %></p>
+      </div>
+      <% if (judgement.pdf_path) { %>
+      <div class="pt-2 border-top">
+        <a href="/documents/judgement/<%= judgement.id %>" class="btn btn-dark btn-sm" target="_blank">
+          <i class="bi bi-file-earmark-pdf me-1"></i>Download Signed Judgement Copy
+        </a>
+      </div>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+
+</div>
+
+<%- include('../partials/footer') %>

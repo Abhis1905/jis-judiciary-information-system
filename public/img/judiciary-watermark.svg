@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none">
+  <!-- Outer Institutional Concentric Rings -->
+  <circle cx="300" cy="300" r="280" stroke="#1E3A8A" stroke-width="2" stroke-dasharray="6 6"/>
+  <circle cx="300" cy="300" r="264" stroke="#B48327" stroke-width="1.5"/>
+  <circle cx="300" cy="300" r="252" stroke="#1E3A8A" stroke-width="3"/>
+  <circle cx="300" cy="300" r="218" stroke="#1E3A8A" stroke-width="1.2" stroke-dasharray="4 4"/>
+
+  <!-- Classical Lotus / Architectural Ring Motifs (24 points) -->
+  <g stroke="#1E3A8A" stroke-width="1.4">
+    <path d="M300 36 L306 48 L294 48 Z"/>
+    <path d="M300 564 L306 552 L294 552 Z"/>
+    <path d="M36 300 L48 306 L48 294 Z"/>
+    <path d="M564 300 L552 306 L552 294 Z"/>
+    <path d="M113 113 L125 117 L117 125 Z"/>
+    <path d="M487 113 L475 117 L483 125 Z"/>
+    <path d="M113 487 L125 483 L117 475 Z"/>
+    <path d="M487 487 L475 483 L483 475 Z"/>
+  </g>
+
+  <!-- Central 24-Spoke Dharma Chakra (Wheel of Law) -->
+  <g transform="translate(300, 235)">
+    <circle cx="0" cy="0" r="92" stroke="#1E3A8A" stroke-width="4.5"/>
+    <circle cx="0" cy="0" r="80" stroke="#B48327" stroke-width="1.5"/>
+    <circle cx="0" cy="0" r="16" stroke="#1E3A8A" stroke-width="3.5"/>
+    <circle cx="0" cy="0" r="6" fill="#1E3A8A"/>
+    <!-- 24 Spokes -->
+    <g stroke="#1E3A8A" stroke-width="1.8">
+      <line x1="0" y1="-16" x2="0" y2="-80"/>
+      <line x1="0" y1="16" x2="0" y2="80"/>
+      <line x1="-16" y1="0" x2="-80" y2="0"/>
+      <line x1="16" y1="0" x2="80" y2="0"/>
+      <line x1="4.1" y1="-15.4" x2="20.7" y2="-77.3"/>
+      <line x1="-4.1" y1="15.4" x2="-20.7" y2="77.3"/>
+      <line x1="8" y1="-13.8" x2="40" y2="-69.3"/>
+      <line x1="-8" y1="13.8" x2="-40" y2="69.3"/>
+      <line x1="11.3" y1="-11.3" x2="56.6" y2="-56.6"/>
+      <line x1="-11.3" y1="11.3" x2="-56.6" y2="56.6"/>
+      <line x1="13.8" y1="-8" x2="69.3" y2="-40"/>
+      <line x1="-13.8" y1="8" x2="-69.3" y2="40"/>
+      <line x1="15.4" y1="-4.1" x2="77.3" y2="-20.7"/>
+      <line x1="-15.4" y1="4.1" x2="-77.3" y2="20.7"/>
+      <line x1="-4.1" y1="-15.4" x2="-20.7" y2="-77.3"/>
+      <line x1="4.1" y1="15.4" x2="20.7" y2="77.3"/>
+      <line x1="-8" y1="-13.8" x2="-40" y2="-69.3"/>
+      <line x1="8" y1="13.8" x2="40" y2="69.3"/>
+      <line x1="-11.3" y1="-11.3" x2="-56.6" y2="-56.6"/>
+      <line x1="11.3" y1="11.3" x2="56.6" y2="56.6"/>
+      <line x1="-13.8" y1="-8" x2="-69.3" y2="-40"/>
+      <line x1="13.8" y1="8" x2="69.3" y2="40"/>
+      <line x1="-15.4" y1="-4.1" x2="-77.3" y2="-20.7"/>
+      <line x1="15.4" y1="4.1" x2="77.3" y2="20.7"/>
+    </g>
+  </g>
+
+  <!-- Balanced Scales of Justice & Judicial Pillar Pedestal -->
+  <g stroke="#1E3A8A" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Central Pillar -->
+    <line x1="300" y1="115" x2="300" y2="455" stroke-width="5"/>
+    <path d="M288 115 L300 95 L312 115 Z" stroke-width="3"/>
+
+    <!-- Balance Beam -->
+    <path d="M160 235 C210 220, 255 235, 300 235 C345 235, 390 220, 440 235" stroke-width="4.5"/>
+    <circle cx="160" cy="235" r="5" fill="#1E3A8A"/>
+    <circle cx="440" cy="235" r="5" fill="#1E3A8A"/>
+
+    <!-- Left Scale Pan -->
+    <line x1="160" y1="240" x2="125" y2="335" stroke-width="2"/>
+    <line x1="160" y1="240" x2="195" y2="335" stroke-width="2"/>
+    <line x1="160" y1="240" x2="160" y2="335" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <path d="M115 335 Q160 368 205 335 Z" stroke-width="3"/>
+
+    <!-- Right Scale Pan -->
+    <line x1="440" y1="240" x2="405" y2="335" stroke-width="2"/>
+    <line x1="440" y1="240" x2="475" y2="335" stroke-width="2"/>
+    <line x1="440" y1="240" x2="440" y2="335" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <path d="M395 335 Q440 368 485 335 Z" stroke-width="3"/>
+
+    <!-- Stepped Judicial Pedestal Base -->
+    <rect x="240" y="455" width="120" height="14" rx="3" stroke-width="3"/>
+    <rect x="210" y="469" width="180" height="16" rx="3" stroke-width="3.5"/>
+    <rect x="180" y="485" width="240" height="18" rx="4" stroke-width="4"/>
+  </g>
+
+  <!-- Subtle Tricolour & Gold Architectural Flourish Lines at Pedestal -->
+  <line x1="205" y1="516" x2="265" y2="516" stroke="#D97706" stroke-width="3" stroke-linecap="round"/>
+  <line x1="275" y1="516" x2="325" y2="516" stroke="#1E3A8A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="335" y1="516" x2="395" y2="516" stroke="#15803D" stroke-width="3" stroke-linecap="round"/>
+</svg>

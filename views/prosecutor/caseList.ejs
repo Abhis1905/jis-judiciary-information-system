@@ -1,0 +1,116 @@
+<%- include('../partials/header', { title: 'My Cases – JIS' }) %>
+
+<div class="container py-4">
+
+  <!-- Breadcrumb & Header -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/prosecutor/dashboard">Dashboard</a></li>
+      <li class="breadcrumb-item active">My Cases (P1)</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="mb-0 fw-bold">
+        <i class="bi bi-briefcase me-2 text-primary"></i>My Allocated Cases
+      </h4>
+      <p class="text-muted mb-0 small">
+        DFD: PUBLIC PROSECUTOR &rarr; JIS (Case Inquiry) | JIS &rarr; PUBLIC PROSECUTOR (Case Allocation)
+      </p>
+    </div>
+    <span class="badge bg-secondary fs-6"><%= cases.length %> Allocated Case(s)</span>
+  </div>
+
+  <!-- Cases Table Card -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <% if (cases.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Case Number</th>
+              <th>Title & Parties</th>
+              <th>Type</th>
+              <th>Assigned Judge</th>
+              <th>Status</th>
+              <th>Visibility</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% cases.forEach(c => { %>
+            <tr>
+              <td>
+                <a href="/prosecutor/cases/<%= c.id %>" class="text-decoration-none fw-bold font-monospace">
+                  <%= c.case_number %>
+                </a>
+              </td>
+              <td>
+                <div class="fw-medium text-dark"><%= c.title %></div>
+                <div class="text-muted small">
+                  <%= c.petitioner_name %> vs <%= c.respondent_name %>
+                </div>
+                <% if (c.high_court_name) { %>
+                  <div class="text-secondary" style="font-size: 0.75rem;">
+                    <i class="bi bi-geo-alt me-1"></i><%= c.district_name ? c.district_name + ', ' : '' %><%= c.high_court_name %>
+                  </div>
+                <% } %>
+              </td>
+              <td>
+                <span class="badge bg-secondary"><%= c.case_type %></span>
+              </td>
+              <td>
+                <% if (c.judge_name) { %>
+                  <span class="text-dark fw-medium">
+                    <i class="bi bi-person-badge me-1 text-primary"></i><%= c.judge_name %>
+                  </span>
+                <% } else { %>
+                  <span class="badge bg-warning text-dark">Pending Allocation</span>
+                <% } %>
+              </td>
+              <td>
+                <%
+                  let statusClass = 'bg-secondary';
+                  if (c.status === 'Filed') statusClass = 'bg-info text-dark';
+                  else if (c.status === 'Allocated') statusClass = 'bg-primary';
+                  else if (c.status === 'In Trial') statusClass = 'bg-warning text-dark';
+                  else if (c.status === 'Judgement Pending') statusClass = 'bg-danger';
+                  else if (c.status === 'Closed') statusClass = 'bg-dark';
+                %>
+                <span class="badge <%= statusClass %>"><%= c.status %></span>
+              </td>
+              <td>
+                <% if (c.is_public) { %>
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    <i class="bi bi-globe me-1"></i>Public
+                  </span>
+                <% } else { %>
+                  <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                    <i class="bi bi-lock me-1"></i>Private
+                  </span>
+                <% } %>
+              </td>
+              <td class="text-end">
+                <a href="/prosecutor/cases/<%= c.id %>" class="btn btn-sm btn-dark">
+                  <i class="bi bi-folder2-open me-1"></i>Open Case
+                </a>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } else { %>
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-briefcase fs-1 d-block mb-3"></i>
+        No cases currently allocated to your prosecution docket.
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+</div>
+
+<%- include('../partials/footer') %>

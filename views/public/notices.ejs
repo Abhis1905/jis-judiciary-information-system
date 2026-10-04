@@ -1,0 +1,52 @@
+<%- include('../partials/header', { title: 'Court Notices – JIS' }) %>
+
+<!-- Page Header -->
+<div class="bg-dark text-white py-4">
+  <div class="container">
+    <h4 class="mb-0 fw-bold">
+      <i class="bi bi-megaphone me-2"></i>Court Notices
+    </h4>
+    <p class="text-secondary mb-0 small">
+      Publicly issued court notices, hearing announcements, and court communications
+    </p>
+  </div>
+</div>
+
+<div class="container py-4">
+  <% if (notices.length > 0) { %>
+    <div class="d-flex flex-column gap-3">
+      <% notices.forEach(n => { %>
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+            <h6 class="fw-bold mb-1">
+              <i class="bi bi-file-earmark-text me-2 text-primary"></i><%= n.notice_title %>
+            </h6>
+            <span class="badge bg-secondary text-nowrap">
+              <i class="bi bi-calendar me-1"></i>
+              <%= new Date(n.date_issued).toLocaleDateString('en-IN') %>
+            </span>
+          </div>
+          <% if (n.case_title) { %>
+          <p class="mb-2 small text-muted">
+            <i class="bi bi-folder2 me-1"></i>
+            Related Case:
+            <a href="/case/<%= n.case_id %>" class="text-decoration-none">
+              <%= n.case_number %> – <%= n.case_title %>
+            </a>
+          </p>
+          <% } %>
+          <p class="mb-0 text-secondary"><%= n.content %></p>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-megaphone fs-2 d-block mb-3"></i>
+      No court notices published yet.
+    </div>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>

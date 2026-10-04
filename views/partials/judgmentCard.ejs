@@ -1,0 +1,218 @@
+<%
+  const hasRealBench = Boolean(
+    j.bench_judges &&
+    !j.bench_judges.includes('Bench of the') &&
+    !j.bench_judges.includes('Division / Single Bench') &&
+    !j.bench_judges.includes('Presiding')
+  );
+  const formattedDate = j.judgment_date
+    ? new Date(j.judgment_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '';
+  const keywordList = j.keywords
+    ? j.keywords.split(',').map(k => k.trim()).filter(Boolean)
+    : [];
+  const courtDisplay = j.high_court_name || j.court_name || j.court_tier;
+  const pdfSizeMb = j.pdf_file_size_bytes
+    ? (j.pdf_file_size_bytes >= 1048576
+        ? (j.pdf_file_size_bytes / 1048576).toFixed(2) + ' MB'
+        : Math.round(j.pdf_file_size_bytes / 1024) + ' KB')
+    : '';
+  const primaryHoldingText = j.key_holding || j.key_ratio || '';
+  const hasSecondaryRatio = Boolean(j.key_holding && j.key_ratio && j.key_holding.trim() !== j.key_ratio.trim());
+  const hasExpandableContext = Boolean(hasSecondaryRatio || j.factual_summary || j.court_reasoning);
+  const matchFields = Array.isArray(j.match_fields) ? j.match_fields : [];
+%>
+<article class="jis-jcard">
+  <!-- Top Institutional Status Bar -->
+  <div class="jis-jcard-top">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="badge bg-dark text-white fw-semibold">
+        <i class="bi <%= j.court_tier === 'Supreme Court of India' ? 'bi-award-fill text-warning' : 'bi-building text-info' %> me-1"></i><%= courtDisplay %>
+      </span>
+      <% if (j.hc_jurisdiction_states) { %>
+        <span class="badge bg-white text-secondary border fw-medium" title="Territorial Jurisdiction">
+          <i class="bi bi-geo-alt me-1 text-primary"></i><%= j.hc_jurisdiction_states %>
+        </span>
+      <% } %>
+      <% if (j.domain) { %>
+        <span class="badge bg-light text-dark border fw-semibold"><%= j.domain %></span>
+      <% } %>
+    </div>
+
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <% if (j.has_verified_pdf) { %>
+        <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold">
+          <i class="bi bi-file-earmark-pdf-fill me-1"></i>Verified PDF<%= pdfSizeMb ? ' (' + pdfSizeMb + ')' : '' %>
+        </span>
+      <% } else { %>
+        <span class="badge bg-secondary-subtle text-secondary border fw-medium" title="No local PDF archived for this judgment">
+          <i class="bi bi-file-earmark-text me-1"></i>PDF Unavailable
+        </span>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Card Main Research Body -->
+  <div class="jis-jcard-body">
+    <!-- Search Match Context (shown on /legal/search when query matches fields) -->
+    <% if (matchFields.length > 0) { %>
+      <div class="d-flex align-items-center flex-wrap gap-1 small">
+        <span class="text-muted fw-semibold me-1"><i class="bi bi-bullseye text-primary me-1"></i>Matched in:</span>
+        <% matchFields.forEach(function(mf) { %>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-medium"><%= mf %></span>
+        <% }); %>
+      </div>
+    <% } %>
+
+    <!-- Case Title -->
+    <div>
+      <h3 class="jis-jcard-title">
+        <a href="/legal/judgments/<%= j.id %>"><%= j.case_name %></a>
+      </h3>
+    </div>
+
+    <!-- Structured Judicial Metadata Grid -->
+    <div class="jis-jcard-meta-grid">
+      <% if (formattedDate) { %>
+        <div class="jis-jcard-meta-item">
+          <span class="jis-jcard-meta-label">Judgment Date</span>
+          <span class="jis-jcard-meta-val"><%= formattedDate %></span>
+        </div>
+      <% } %>
+
+      <% if (j.citation) { %>
+        <div class="jis-jcard-meta-item">
+          <span class="jis-jcard-meta-label">Primary Citation</span>
+          <span class="jis-jcard-meta-val text-primary font-monospace"><%= j.citation %></span>
+        </div>
+      <% } %>
+
+      <% if (j.case_number) { %>
+        <div class="jis-jcard-meta-item">
+          <span class="jis-jcard-meta-label">Case Number</span>
+          <span class="jis-jcard-meta-val"><%= j.case_number %></span>
+        </div>
+      <% } else if (j.neutral_citation && j.neutral_citation !== j.citation) { %>
+        <div class="jis-jcard-meta-item">
+          <span class="jis-jcard-meta-label">Neutral Citation</span>
+          <span class="jis-jcard-meta-val font-monospace"><%= j.neutral_citation %></span>
+        </div>
+      <% } %>
+
+      <% if (hasRealBench) { %>
+        <div class="jis-jcard-meta-item" style="grid-column: 1 / -1;">
+          <span class="jis-jcard-meta-label">Coram / Bench<%= j.bench_strength ? ' (' + j.bench_strength + ' Judges)' : '' %></span>
+          <span class="jis-jcard-meta-val"><%= j.bench_judges %></span>
+        </div>
+      <% } else if (j.bench_strength) { %>
+        <div class="jis-jcard-meta-item">
+          <span class="jis-jcard-meta-label">Bench Strength</span>
+          <span class="jis-jcard-meta-val"><%= j.bench_strength %>-Judge Bench</span>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Legal Issue (Full text, never truncated with line-clamp) -->
+    <% if (j.legal_issue) { %>
+      <div class="jis-field-block">
+        <div class="jis-field-label">
+          <i class="bi bi-question-diamond-fill text-primary"></i>Legal Issue
+        </div>
+        <p class="jis-field-content"><%= j.legal_issue %></p>
+      </div>
+    <% } %>
+
+    <!-- Key Holding / Ratio Decidendi (Full text) -->
+    <% if (primaryHoldingText) { %>
+      <div class="jis-field-block jis-holding-callout">
+        <div class="jis-field-label text-primary">
+          <i class="bi bi-bank2"></i>Key Holding &amp; Ratio Decidendi
+        </div>
+        <p class="jis-field-content"><%= primaryHoldingText %></p>
+      </div>
+    <% } %>
+
+    <!-- Expandable Additional Context (Ratio Decidendi, Factual Background, Outcome) when available -->
+    <% if (hasExpandableContext) { %>
+      <details class="jis-expand-details">
+        <summary class="jis-expand-summary">
+          <span>
+            <i class="bi bi-journal-text me-1"></i>
+            Show Detailed Ratio<%= j.factual_summary ? ', Factual Summary' : '' %><%= j.outcome ? ' & Disposition' : '' %>
+          </span>
+          <i class="bi bi-chevron-down jis-expand-chevron"></i>
+        </summary>
+        <div class="d-flex flex-column gap-2 pt-1">
+          <% if (hasSecondaryRatio) { %>
+            <div>
+              <div class="jis-field-label">Binding Ratio Decidendi</div>
+              <p class="small text-dark mb-0" style="line-height: 1.55;"><%= j.key_ratio %></p>
+            </div>
+          <% } %>
+          <% if (j.factual_summary) { %>
+            <div>
+              <div class="jis-field-label">Factual Summary</div>
+              <p class="small text-secondary mb-0" style="line-height: 1.55;"><%= j.factual_summary %></p>
+            </div>
+          <% } %>
+          <% if (j.outcome) { %>
+            <div>
+              <div class="jis-field-label">Disposition / Outcome</div>
+              <p class="small fw-semibold text-success mb-0"><%= j.outcome %></p>
+            </div>
+          <% } %>
+        </div>
+      </details>
+    <% } else if (j.outcome) { %>
+      <div class="small">
+        <span class="text-muted fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.04em;">Disposition:</span>
+        <span class="fw-semibold text-dark ms-1"><%= j.outcome %></span>
+      </div>
+    <% } %>
+
+    <!-- Linked Statutory Provisions Summary (if present) -->
+    <% if (j.linked_provisions_summary) { %>
+      <div class="jis-field-block">
+        <div class="jis-field-label">
+          <i class="bi bi-book text-secondary"></i>Statutory Provisions Interpreted
+        </div>
+        <div class="small text-dark fw-medium"><%= j.linked_provisions_summary %></div>
+      </div>
+    <% } %>
+
+    <!-- Important Keywords -->
+    <% if (keywordList.length > 0) { %>
+      <div class="d-flex flex-wrap align-items-center gap-1 pt-1">
+        <span class="text-muted fw-semibold me-1" style="font-size: 0.72rem;">Keywords:</span>
+        <% keywordList.forEach(function(kw) { %>
+          <a href="/legal/search?q=<%= encodeURIComponent(kw) %>" class="jis-keyword-pill"><%= kw %></a>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Action Footer -->
+  <div class="jis-jcard-footer">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <a href="/legal/judgments/<%= j.id %>" class="btn btn-primary btn-sm px-3 fw-semibold">
+        View Judgment <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+      <% if (j.has_verified_pdf) { %>
+        <a href="/legal/judgments/<%= j.id %>/pdf" target="_blank" rel="noopener noreferrer" class="btn btn-outline-dark btn-sm px-3 fw-semibold">
+          <i class="bi bi-file-earmark-pdf text-danger me-1"></i>Read PDF
+        </a>
+      <% } %>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.68rem;">
+        REAL / VERIFIED
+      </span>
+      <% if (j.source_url) { %>
+        <a href="<%= j.source_url %>" target="_blank" rel="noopener noreferrer" class="btn btn-link btn-sm text-secondary text-decoration-none p-0 small" title="Verify on Official Custodian Portal">
+          Source <i class="bi bi-box-arrow-up-right"></i>
+        </a>
+      <% } %>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,162 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-2">
+      <li class="breadcrumb-item"><a href="/legal" class="text-decoration-none">Legal Repository</a></li>
+      <li class="breadcrumb-item"><a href="/legal/acts" class="text-decoration-none">Acts & Codes</a></li>
+      <li class="breadcrumb-item active" aria-current="page"><%= act.short_title %></li>
+    </ol>
+  </nav>
+
+  <!-- Act Header Card -->
+  <div class="card border-0 shadow-sm mb-4 p-4 bg-light">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge <%= act.status === 'Active' ? 'bg-success' : 'bg-secondary' %>"><%= act.status %></span>
+          <span class="badge bg-dark"><%= act.act_code %></span>
+          <span class="text-muted small"><%= act.act_number %></span>
+        </div>
+        <h2 class="fw-bold text-dark mb-1"><%= act.title %></h2>
+        <div class="text-muted small">
+          Enacted: <%= act.enactment_year %> &bull; Enforced: <%= new Date(act.enforcing_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+          <% if (act.repeal_date) { %>
+            &bull; Repealed: <%= new Date(act.repeal_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+          <% } %>
+        </div>
+      </div>
+
+      <div>
+        <a href="<%= act.source_url %>" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-box-arrow-up-right me-1"></i>Official India Code Entry
+        </a>
+      </div>
+    </div>
+
+    <p class="text-secondary small mb-0"><%= act.description %></p>
+  </div>
+
+  <!-- Chapters & Sections -->
+  <div class="row">
+    <div class="col-lg-3 mb-4">
+      <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+        <div class="card-header bg-white fw-bold py-3">
+          <i class="bi bi-list-columns-reverse me-2"></i>Chapters Index (<%= chapters.length %>)
+        </div>
+        <div class="list-group list-group-flush small" style="max-height: 500px; overflow-y: auto;">
+          <% chapters.forEach(function(ch, idx) { %>
+            <a href="#ch-<%= ch.id %>" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+              <div>
+                <strong><%= ch.chapter_number %></strong>: <%= ch.title.length > 25 ? ch.title.substring(0, 25) + '...' : ch.title %>
+              </div>
+              <span class="badge bg-light text-dark rounded-pill border"><%= ch.sections.length %></span>
+            </a>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-9">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0">Statutory Sections (<%= totalSections %> Total)</h4>
+        <span class="text-muted small">Showing complete statutory section library</span>
+      </div>
+
+      <% chapters.forEach(function(ch) { %>
+        <div class="card border-0 shadow-sm mb-4" id="ch-<%= ch.id %>">
+          <div class="card-header bg-light py-3 border-0">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="badge bg-primary me-2"><%= ch.chapter_number %></span>
+                <strong class="fs-6 text-dark"><%= ch.title %></strong>
+              </div>
+              <span class="badge bg-secondary-subtle text-dark border"><%= ch.sections.length %> sections</span>
+            </div>
+          </div>
+
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small">
+                  <tr>
+                    <th style="width: 15%;">Section</th>
+                    <th style="width: 55%;">Title</th>
+                    <th style="width: 15%;">Legal Nature</th>
+                    <th style="width: 15%;" class="text-end">Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (ch.sections.length === 0) { %>
+                    <tr>
+                      <td colspan="4" class="text-center text-muted py-3 small">No sections listed under this chapter.</td>
+                    </tr>
+                  <% } else { %>
+                    <% ch.sections.forEach(function(sec) { %>
+                      <tr>
+                        <td class="fw-bold text-primary">
+                          Sec <%= sec.section_number %>
+                        </td>
+                        <td>
+                          <a href="/legal/sections/<%= sec.id %>" class="text-decoration-none text-dark hover-primary fw-medium">
+                            <%= sec.section_title %>
+                          </a>
+                        </td>
+                        <td>
+                          <span class="badge bg-light text-dark border small">
+                            <%= sec.legal_nature %>
+                          </span>
+                        </td>
+                        <td class="text-end">
+                          <a href="/legal/sections/<%= sec.id %>" class="btn btn-sm btn-outline-primary py-0 px-2">
+                            View
+                          </a>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+
+      <% if (unassignedSections && unassignedSections.length > 0) { %>
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-light py-3 border-0">
+            <strong class="fs-6 text-dark">Additional Sections</strong>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <tbody>
+                  <% unassignedSections.forEach(function(sec) { %>
+                    <tr>
+                      <td class="fw-bold text-primary" style="width: 15%;">Sec <%= sec.section_number %></td>
+                      <td style="width: 55%;">
+                        <a href="/legal/sections/<%= sec.id %>" class="text-decoration-none text-dark hover-primary fw-medium">
+                          <%= sec.section_title %>
+                        </a>
+                      </td>
+                      <td style="width: 15%;"><span class="badge bg-light text-dark border small"><%= sec.legal_nature %></span></td>
+                      <td style="width: 15%;" class="text-end">
+                        <a href="/legal/sections/<%= sec.id %>" class="btn btn-sm btn-outline-primary py-0 px-2">View</a>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+    </div>
+  </div>
+
+</div>
+
+<%- include('../partials/footer') %>

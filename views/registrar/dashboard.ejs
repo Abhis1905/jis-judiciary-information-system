@@ -1,0 +1,213 @@
+<%- include('../partials/header', { title: 'Registrar Dashboard – JIS' }) %>
+
+<!-- Page Header -->
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <h1 class="jis-page-title">Registrar Dashboard</h1>
+    <p class="jis-page-subtitle">
+      Court Registry Overview &bull; Signed in as <strong><%= user.full_name %></strong>
+    </p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a href="/registrar/hearings" class="btn btn-outline-primary">
+      <i class="bi bi-calendar3 me-1"></i>Schedule Hearing
+    </a>
+    <a href="/registrar/cases/new" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>File New Case
+    </a>
+  </div>
+</div>
+
+<!-- Priority Next-Step Banner when Cases Await Judge Allocation -->
+<% if (pendingAllocation > 0) { %>
+  <div class="jis-card mb-4 p-3" style="border-left: 4px solid var(--jis-warning) !important; background-color: var(--jis-warning-bg);">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-circle-fill fs-5" style="color: var(--jis-warning);"></i>
+        <div>
+          <div class="fw-semibold text-dark">Action Recommended: <%= Number(pendingAllocation).toLocaleString('en-IN') %> case(s) awaiting judicial allocation</div>
+          <div class="small text-secondary">Newly filed cases require assignment to a presiding Judge before trial proceedings can begin.</div>
+        </div>
+      </div>
+      <a href="/registrar/cases" class="btn btn-sm btn-primary">
+        Review &amp; Allocate Cases &rarr;
+      </a>
+    </div>
+  </div>
+<% } %>
+
+<!-- Key Registry Metrics -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="jis-stat-card">
+      <div>
+        <div class="jis-stat-label">Total Registered Cases</div>
+        <div class="jis-stat-value"><%= Number(totalCases).toLocaleString('en-IN') %></div>
+        <div class="jis-stat-meta">Active &amp; disposed dockets</div>
+      </div>
+      <span class="jis-stat-icon navy" aria-hidden="true">
+        <i class="bi bi-folder2-open"></i>
+      </span>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="jis-stat-card">
+      <div>
+        <div class="jis-stat-label">Pending Allocation</div>
+        <div class="jis-stat-value"><%= Number(pendingAllocation).toLocaleString('en-IN') %></div>
+        <div class="jis-stat-meta">Filed cases awaiting a Judge</div>
+      </div>
+      <span class="jis-stat-icon amber" aria-hidden="true">
+        <i class="bi bi-person-exclamation"></i>
+      </span>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="jis-stat-card">
+      <div>
+        <div class="jis-stat-label">Hearings Today</div>
+        <div class="jis-stat-value"><%= Number(todayHearings).toLocaleString('en-IN') %></div>
+        <div class="jis-stat-meta"><%= typeof thisWeekHearings !== 'undefined' ? `${Number(thisWeekHearings).toLocaleString('en-IN')} scheduled this week` : 'Daily court cause list' %></div>
+      </div>
+      <span class="jis-stat-icon green" aria-hidden="true">
+        <i class="bi bi-calendar-check"></i>
+      </span>
+    </div>
+  </div>
+
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="jis-stat-card">
+      <div>
+        <div class="jis-stat-label">Unread Notifications</div>
+        <div class="jis-stat-value"><%= Number(unreadCount).toLocaleString('en-IN') %></div>
+        <div class="jis-stat-meta">System &amp; judicial updates</div>
+      </div>
+      <span class="jis-stat-icon red" aria-hidden="true">
+        <i class="bi bi-bell"></i>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Core Registry Workflows -->
+<div class="mb-4">
+  <h2 class="jis-section-title mb-3">Registry Workflows</h2>
+  <div class="row g-3">
+    <div class="col-12 col-md-4">
+      <a href="/registrar/cases/new" class="card jis-action-card h-100 text-decoration-none">
+        <div class="card-body d-flex align-items-start gap-3">
+          <span class="jis-stat-icon navy" aria-hidden="true">
+            <i class="bi bi-file-earmark-plus"></i>
+          </span>
+          <div>
+            <div class="fw-semibold text-dark mb-1">File a New Case</div>
+            <p class="jis-meta mb-0">Register a new Civil, Criminal, Constitutional, or Family case and assign its court jurisdiction.</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <a href="/registrar/cases" class="card jis-action-card h-100 text-decoration-none">
+        <div class="card-body d-flex align-items-start gap-3">
+          <span class="jis-stat-icon navy" aria-hidden="true">
+            <i class="bi bi-journal-text"></i>
+          </span>
+          <div>
+            <div class="fw-semibold text-dark mb-1">All Cases &amp; Allocation</div>
+            <p class="jis-meta mb-0">Browse court dockets, assign Judges, manage case documents, and initiate appellate filings.</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <a href="/registrar/hearings" class="card jis-action-card h-100 text-decoration-none">
+        <div class="card-body d-flex align-items-start gap-3">
+          <span class="jis-stat-icon green" aria-hidden="true">
+            <i class="bi bi-calendar3"></i>
+          </span>
+          <div>
+            <div class="fw-semibold text-dark mb-1">Hearing Management</div>
+            <p class="jis-meta mb-0">Schedule court hearing dates, assign courtrooms, and review advocate scheduling requests.</p>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Hearing Schedule Confirmations -->
+<div class="card">
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div>
+      <h2 class="jis-section-title">Recent Hearing Confirmations</h2>
+      <div class="jis-meta">Most recently scheduled or updated court hearings</div>
+    </div>
+    <a href="/registrar/hearings" class="btn btn-sm btn-outline-primary">
+      View Full Schedule &rarr;
+    </a>
+  </div>
+  <div class="card-body p-0">
+    <% if (recentHearings && recentHearings.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Case Number &amp; Title</th>
+              <th>Hearing Date</th>
+              <th>Time</th>
+              <th>Court Room</th>
+              <th>Hearing Stage</th>
+              <th>Status</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recentHearings.forEach(h => { %>
+              <tr>
+                <td>
+                  <a href="/registrar/cases/<%= h.case_id %>" class="text-decoration-none fw-semibold text-dark d-block">
+                    <%= h.case_title %>
+                  </a>
+                  <span class="font-monospace text-muted small"><%= h.case_number %></span>
+                </td>
+                <td class="fw-medium"><%= new Date(h.hearing_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></td>
+                <td class="text-secondary"><%= h.hearing_time ? h.hearing_time.slice(0, 5) : '—' %></td>
+                <td><%= h.court_room || '—' %></td>
+                <td><span class="jis-badge"><%= h.hearing_type %></span></td>
+                <td>
+                  <% if (h.status === 'Scheduled') { %>
+                    <span class="jis-badge jis-badge-success"><i class="bi bi-check-circle"></i> <%= h.status %></span>
+                  <% } else if (h.status === 'Completed') { %>
+                    <span class="jis-badge"><i class="bi bi-check2-all"></i> <%= h.status %></span>
+                  <% } else { %>
+                    <span class="jis-badge jis-badge-warning"><i class="bi bi-clock"></i> <%= h.status %></span>
+                  <% } %>
+                </td>
+                <td class="text-end">
+                  <a href="/registrar/cases/<%= h.case_id %>" class="btn btn-sm btn-outline-primary">
+                    Open Case
+                  </a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="jis-empty-state">
+        <i class="bi bi-calendar-x jis-empty-icon" aria-hidden="true"></i>
+        <div class="jis-empty-title">No hearings scheduled yet</div>
+        <p class="jis-empty-text">When hearings are scheduled for registered cases, the most recent confirmations will appear here.</p>
+        <a href="/registrar/hearings" class="btn btn-sm btn-primary">
+          <i class="bi bi-calendar-plus me-1"></i>Schedule a Hearing
+        </a>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

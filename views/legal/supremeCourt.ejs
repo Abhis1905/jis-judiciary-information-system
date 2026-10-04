@@ -1,0 +1,168 @@
+<%- include('../partials/header') %>
+<%- include('../partials/legalStyles') %>
+
+<%
+  const pdfOnlyVal = typeof currentPdfOnly !== 'undefined' ? currentPdfOnly : '';
+%>
+
+<div class="jis-legal-scope container py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="/legal" class="text-decoration-none">Legal Knowledge Repository</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Supreme Court Landmark Judgments</li>
+    </ol>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="card border shadow-sm mb-4 bg-white">
+    <div class="card-body p-4">
+      <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+            <span class="badge bg-dark text-white">
+              <i class="bi bi-award-fill text-warning me-1"></i>Apex Court Jurisdiction (Article 141)
+            </span>
+            <span class="badge bg-success-subtle text-success border border-success-subtle">
+              <i class="bi bi-patch-check-fill me-1"></i>REAL / VERIFIED Only
+            </span>
+          </div>
+          <h1 class="h3 fw-bold mb-1">Supreme Court Landmark Judgments</h1>
+          <p class="text-muted small mb-0">
+            Authoritative constitutional, criminal, civil, and evidentiary rulings of the Supreme Court of India with structured legal issues, ratio decidendi, bench composition, and verified full-text PDF access.
+          </p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <div class="px-3 py-2 rounded border bg-light text-center">
+            <div class="fw-bold text-primary fs-5 lh-1"><%= total %></div>
+            <div class="text-muted" style="font-size: 0.72rem;">Matching Judgments</div>
+          </div>
+          <div class="px-3 py-2 rounded border bg-light text-center">
+            <div class="fw-bold text-success fs-5 lh-1"><%= stats ? (stats.verifiedPdfCount || 11) : 11 %></div>
+            <div class="text-muted" style="font-size: 0.72rem;">Verified Full PDFs</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Research Filter Bar -->
+  <div class="card border shadow-sm p-3 mb-4 bg-white">
+    <form action="/legal/judgments/supreme-court" method="GET" class="row g-2 align-items-end" role="search" aria-label="Filter Supreme Court Judgments">
+      <div class="col-md-4">
+        <label for="sc-search-input" class="form-label small fw-bold text-muted mb-1">Keyword / Citation / Case Title</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+          <input
+            id="sc-search-input"
+            type="text"
+            name="search"
+            value="<%= search %>"
+            class="form-control border-start-0"
+            placeholder="Case name, SCC/AIR/INSC citation, issue, keyword..."
+          >
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-md-3">
+        <label for="sc-domain-select" class="form-label small fw-bold text-muted mb-1">Legal Category / Domain</label>
+        <select id="sc-domain-select" name="domain" class="form-select form-select-sm">
+          <option value="">All Legal Categories</option>
+          <% domains.forEach(function(d) { %>
+            <option value="<%= d %>" <%= currentDomain === d ? 'selected' : '' %>><%= d %></option>
+          <% }); %>
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-md-2">
+        <label for="sc-year-select" class="form-label small fw-bold text-muted mb-1">Judgment Year</label>
+        <select id="sc-year-select" name="year" class="form-select form-select-sm">
+          <option value="">All Years</option>
+          <% years.forEach(function(yr) { %>
+            <option value="<%= yr %>" <%= currentYear == yr ? 'selected' : '' %>><%= yr %></option>
+          <% }); %>
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-md-2">
+        <label for="sc-pdf-select" class="form-label small fw-bold text-muted mb-1">Document Status</label>
+        <select id="sc-pdf-select" name="pdf_only" class="form-select form-select-sm">
+          <option value="">All Verified Records</option>
+          <option value="1" <%= pdfOnlyVal === '1' ? 'selected' : '' %>>Verified PDF Available</option>
+        </select>
+      </div>
+
+      <div class="col-sm-6 col-md-1 d-flex gap-1">
+        <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold">Apply</button>
+        <% if (search || currentDomain || currentYear || pdfOnlyVal) { %>
+          <a href="/legal/judgments/supreme-court" class="btn btn-outline-secondary btn-sm" title="Reset Filters">Reset</a>
+        <% } %>
+      </div>
+    </form>
+
+    <!-- Quick Domain Filter Pills -->
+    <div class="d-flex flex-wrap align-items-center gap-1 mt-3 pt-2 border-top">
+      <span class="text-muted small fw-semibold me-1">Quick Filter:</span>
+      <a href="/legal/judgments/supreme-court" class="badge text-decoration-none <%= (!currentDomain && !pdfOnlyVal) ? 'bg-primary text-white' : 'bg-light text-dark border' %>">
+        All (<%= stats ? stats.realSupremeCourtJudgments : 84 %>)
+      </a>
+      <a href="/legal/judgments/supreme-court?pdf_only=1" class="badge text-decoration-none <%= pdfOnlyVal === '1' ? 'bg-success text-white' : 'bg-success-subtle text-success border border-success-subtle' %>">
+        <i class="bi bi-file-earmark-pdf-fill me-1"></i>Verified PDFs (<%= stats ? (stats.verifiedPdfCount || 11) : 11 %>)
+      </a>
+      <% domains.forEach(function(d) { %>
+        <a href="/legal/judgments/supreme-court?domain=<%= encodeURIComponent(d) %>" class="badge text-decoration-none <%= currentDomain === d ? 'bg-primary text-white' : 'bg-light text-dark border' %>">
+          <%= d %>
+        </a>
+      <% }); %>
+    </div>
+  </div>
+
+  <!-- Judgments Grid -->
+  <% if (judgments.length === 0) { %>
+    <div class="card border shadow-sm p-5 text-center text-muted bg-white">
+      <i class="bi bi-file-earmark-x fs-1 mb-2 text-secondary"></i>
+      <h2 class="h5 text-dark">No verified Supreme Court judgments matched your criteria</h2>
+      <p class="small mb-3">Try clearing your active filters or searching with broader legal terms.</p>
+      <div>
+        <a href="/legal/judgments/supreme-court" class="btn btn-sm btn-outline-primary fw-semibold">Reset Filters</a>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="row g-4 mb-4">
+      <% judgments.forEach(function(j) { %>
+        <div class="col-lg-6">
+          <%- include('../partials/judgmentCard', { j }) %>
+        </div>
+      <% }); %>
+    </div>
+
+    <!-- Pagination -->
+    <% if (totalPages > 1) { %>
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 pt-2">
+        <div class="small text-muted">
+          Showing page <strong><%= page %></strong> of <strong><%= totalPages %></strong> (<%= total %> verified Supreme Court judgments)
+        </div>
+        <nav aria-label="Supreme Court judgments pagination">
+          <ul class="pagination mb-0">
+            <li class="page-item <%= page <= 1 ? 'disabled' : '' %>">
+              <a class="page-link" href="?page=<%= page - 1 %>&domain=<%= encodeURIComponent(currentDomain) %>&year=<%= encodeURIComponent(currentYear) %>&pdf_only=<%= encodeURIComponent(pdfOnlyVal) %>&search=<%= encodeURIComponent(search) %>">Previous</a>
+            </li>
+            <% for (let p = Math.max(1, page - 2); p <= Math.min(totalPages, page + 2); p++) { %>
+              <li class="page-item <%= p === page ? 'active' : '' %>">
+                <a class="page-link" href="?page=<%= p %>&domain=<%= encodeURIComponent(currentDomain) %>&year=<%= encodeURIComponent(currentYear) %>&pdf_only=<%= encodeURIComponent(pdfOnlyVal) %>&search=<%= encodeURIComponent(search) %>"><%= p %></a>
+              </li>
+            <% } %>
+            <li class="page-item <%= page >= totalPages ? 'disabled' : '' %>">
+              <a class="page-link" href="?page=<%= page + 1 %>&domain=<%= encodeURIComponent(currentDomain) %>&year=<%= encodeURIComponent(currentYear) %>&pdf_only=<%= encodeURIComponent(pdfOnlyVal) %>&search=<%= encodeURIComponent(search) %>">Next</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    <% } %>
+  <% } %>
+
+</div>
+
+<%- include('../partials/footer') %>

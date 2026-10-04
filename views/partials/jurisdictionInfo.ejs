@@ -1,0 +1,116 @@
+<!-- Indian Judiciary Hierarchy & Jurisdiction Details Partial -->
+<div class="card mb-4">
+  <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-diagram-3 text-primary"></i>
+      <h2 class="jis-section-title">Judicial Jurisdiction & Court Hierarchy</h2>
+    </div>
+    <% if (caseRecord.court_level_name) { %>
+      <span class="jis-badge jis-badge-navy">
+        Tier <%= caseRecord.court_tier_order || 3 %> &bull; <%= caseRecord.court_level_name %>
+      </span>
+    <% } %>
+  </div>
+
+  <div class="card-body">
+    <!-- Visual 6-Step Judiciary Hierarchy Chain: State/UT -> High Court -> Bench -> District -> Court Level -> Subordinate Court -->
+    <div class="jis-hierarchy-chain" role="list" aria-label="Court Jurisdiction Hierarchy">
+      <div class="jis-hierarchy-node" role="listitem">
+        <div class="jis-hierarchy-step">
+          <span>1. State / UT</span>
+          <i class="bi bi-chevron-right ms-auto"></i>
+        </div>
+        <div class="jis-hierarchy-value"><%= caseRecord.state_name || 'All-India / Union' %></div>
+        <% if (caseRecord.state_type) { %>
+          <div class="jis-hierarchy-sub"><%= caseRecord.state_type %></div>
+        <% } %>
+      </div>
+
+      <div class="jis-hierarchy-node" role="listitem">
+        <div class="jis-hierarchy-step">
+          <span>2. High Court</span>
+          <i class="bi bi-chevron-right ms-auto"></i>
+        </div>
+        <div class="jis-hierarchy-value"><%= caseRecord.high_court_name || 'Appellate High Court' %></div>
+        <% if (caseRecord.principal_seat_city) { %>
+          <div class="jis-hierarchy-sub">Seat: <%= caseRecord.principal_seat_city %></div>
+        <% } %>
+      </div>
+
+      <div class="jis-hierarchy-node" role="listitem">
+        <div class="jis-hierarchy-step">
+          <span>3. Bench</span>
+          <i class="bi bi-chevron-right ms-auto"></i>
+        </div>
+        <div class="jis-hierarchy-value"><%= caseRecord.bench_name || 'Principal Seat' %></div>
+        <% if (caseRecord.bench_type) { %>
+          <div class="jis-hierarchy-sub"><%= caseRecord.bench_type %><%= caseRecord.bench_city ? ' • ' + caseRecord.bench_city : '' %></div>
+        <% } %>
+      </div>
+
+      <div class="jis-hierarchy-node" role="listitem">
+        <div class="jis-hierarchy-step">
+          <span>4. Judicial District</span>
+          <i class="bi bi-chevron-right ms-auto"></i>
+        </div>
+        <div class="jis-hierarchy-value"><%= caseRecord.district_name || 'Original / Appellate Forum' %></div>
+        <% if (caseRecord.district_hq) { %>
+          <div class="jis-hierarchy-sub">HQ: <%= caseRecord.district_hq %></div>
+        <% } %>
+      </div>
+
+      <div class="jis-hierarchy-node" role="listitem">
+        <div class="jis-hierarchy-step">
+          <span>5. Court Level</span>
+          <i class="bi bi-chevron-right ms-auto"></i>
+        </div>
+        <div class="jis-hierarchy-value"><%= caseRecord.court_level_name || 'District & Sessions Court' %></div>
+        <% if (caseRecord.court_level_category) { %>
+          <div class="jis-hierarchy-sub"><%= caseRecord.court_level_category %> Forum</div>
+        <% } %>
+      </div>
+
+      <div class="jis-hierarchy-node" role="listitem">
+        <div class="jis-hierarchy-step">
+          <span>6. Subordinate Court</span>
+        </div>
+        <div class="jis-hierarchy-value"><%= caseRecord.subordinate_court_name || caseRecord.court_level_name || 'Principal Court Establishment' %></div>
+        <% if (caseRecord.subordinate_court_location) { %>
+          <div class="jis-hierarchy-sub"><%= caseRecord.subordinate_court_location %></div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Statutory Appellate Pathway -->
+    <% if (typeof appellateChain !== 'undefined' && appellateChain && appellateChain.length > 0) { %>
+      <div class="mt-3 pt-3 border-top">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-signpost-split text-primary"></i>
+            <span class="fw-semibold small text-dark">Statutory Appellate Pathway (<%= caseRecord.case_type %> Jurisdiction)</span>
+          </div>
+          <span class="jis-meta"><%= appellateChain.length %> statutory escalation tier(s)</span>
+        </div>
+
+        <div class="row g-2">
+          <% appellateChain.forEach(function(step, index) { %>
+            <div class="col-12 col-md-6">
+              <div class="p-2 px-3 rounded border bg-light h-100">
+                <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                  <span class="small fw-semibold text-dark">
+                    <span class="jis-badge jis-badge-navy me-1"><%= index + 1 %></span>
+                    <%= step.from_level_name %> &rarr; <%= step.to_level_name %>
+                  </span>
+                  <span class="jis-badge"><%= step.appeal_type %></span>
+                </div>
+                <div class="jis-meta">
+                  <strong>Statute:</strong> <%= step.governing_statute %>
+                </div>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</div>

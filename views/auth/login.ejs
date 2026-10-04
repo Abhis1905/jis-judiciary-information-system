@@ -1,0 +1,93 @@
+<%- include('../partials/header', { title: 'Login – JIS' }) %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-sm-10 col-md-7 col-lg-5 col-xl-4">
+
+      <div class="card shadow border-0">
+
+        <!-- Card Header -->
+        <div class="card-header bg-dark text-white text-center py-4">
+          <i class="bi bi-bank2 display-5 d-block mb-2"></i>
+          <h4 class="mb-0 fw-bold">JIS</h4>
+          <p class="mb-0 text-secondary small">Judiciary Info System</p>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body p-4">
+          <h5 class="card-title text-center mb-4 fw-semibold">Staff Login</h5>
+
+          <form action="/login" method="POST" novalidate>
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="email" class="form-label fw-medium">Email Address</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light">
+                  <i class="bi bi-envelope text-muted"></i>
+                </span>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  class="form-control"
+                  placeholder="you@jis.gov.in"
+                  required
+                  autocomplete="email"
+                  autofocus
+                >
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-4">
+              <label for="password" class="form-label fw-medium">Password</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light">
+                  <i class="bi bi-lock text-muted"></i>
+                </span>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  class="form-control"
+                  placeholder="Enter your password"
+                  required
+                  autocomplete="current-password"
+                >
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="d-grid">
+              <button type="submit" class="btn btn-dark btn-lg">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+              </button>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="card-footer bg-light text-center text-muted small py-3">
+          <a href="/" class="text-decoration-none me-3">
+            <i class="bi bi-search me-1"></i>Public Case Search
+          </a>
+          <a href="/notices" class="text-decoration-none">
+            <i class="bi bi-megaphone me-1"></i>Court Notices
+          </a>
+        </div>
+
+      </div><!-- /card -->
+
+      <p class="text-center text-muted small mt-3">
+        <i class="bi bi-info-circle me-1"></i>
+        Citizens: use the <a href="/">public portal</a> — no login required.
+      </p>
+
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
