@@ -54,10 +54,10 @@ flowchart TD
     end
 
     subgraph Database Tier [MySQL 8.0]
-        JH[Real Judiciary Hierarchy<br/>36 States | 25 HCs | 41 Benches | 787 Districts]
-        LR[Legal Repository<br/>105 Real + 500 Synthetic Judgments | 2,419 Sections | 149 Mappings]
+        JH[Real Judiciary Hierarchy<br/>36 States • 25 HCs • 41 Benches • 787 Districts]
+        LR[Legal Repository<br/>105 Real + 500 Synthetic Judgments • 2,419 Sections • 149 Mappings]
         CD[Case Dockets<br/>100,000 Base Cases + Multi-Tier Appeals]
-        REL[Normalized Relational Junctions<br/>Case-Sections | Case-Judgments]
+        REL[Normalized Relational Junctions<br/>Case-Sections • Case-Judgments]
     end
 
     C --> Sec --> Router
